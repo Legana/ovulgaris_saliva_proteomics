@@ -6,7 +6,7 @@ peptide_uniqueness = {}
 
 peptide_is_covered_by_known = {}
 
-File.foreach("novel_peptides_copies.txt") do |line|  
+File.foreach("novel_peptides_copies.txt") do |line|
 	line.chomp!
 	lparts = line.split(" ")
 	if peptide_uniqueness[lparts[0]]
@@ -24,7 +24,7 @@ end
 
 
 
-File.foreach("really_novel_pg.gff3") do |line|  
+File.foreach("really_novel.gff3") do |line|  
 	line.chomp!
 	lparts = line.split(/\s/)
 	peptide = lparts[8].match(/[0-9]+\.([A-Z]+)\.[0-9]+\;/).captures[0]

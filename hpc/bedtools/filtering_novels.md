@@ -35,7 +35,7 @@ bedtools subtract -s -f 1.0 -a novel_pg.gff3 -b known_pg.gff3 > really_novel.gff
 cat really_novel.gff3 | cut -f1
 ```
 
-#sort them by newest first
+#sort them alphabetically and then only report unique matches. sort -u same as sort | unique
 
 ```bash
 cat really_novel.gff3 | cut -f1 | sort -u
@@ -79,7 +79,7 @@ cp ../proteogenomics/*.rb .
 cat really_novel.gff3 | cut -f1
 ```
 
-#Sort them according to newest first
+#Sort them according to alphabetically and then only report unique matches
 
 ```bash
 cat really_novel.gff3 | cut -f1 | sort -u
@@ -91,7 +91,7 @@ cat really_novel.gff3 | cut -f1 | sort -u
 cat really_novel.gff3 | cut -f1 | sort -u > really_novel_ids.txt
 ```
 
-#run filter_gff ruby program to mix known and novels
+#run filter_gff ruby program to correspond known transcript to novels
 
 ```bash
 ./filter_gff.rb

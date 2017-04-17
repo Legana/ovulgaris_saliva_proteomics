@@ -22,11 +22,11 @@ bioawk -c fastx '{printf("\n" $seq) substr($seq, index($seq, "M"))}'  really_nov
 #combining printf, substring and index to extract the novel sequences that start with M
 
 ```bash
-bioawk -c fastx '{printf("%s\n%s\n",$name, substr($seq, index($seq, "M")))}'  really_novel_uniqueness_pg.fasta
+bioawk -c fastx '{printf("%s\n%s\n",">"$name, substr($seq, index($seq, "M")))}'  really_novel_uniqueness_pg.fasta
 ```
 
-#Put output in a fasta file called novel_m _seq.fasta
+#Put output in a fasta file called novel_m_seq.fasta
 
 ```bash
-bioawk -c fastx '{printf("%s\n%s\n", ">"$name, substr($seq, index($seq, "M")))}'  really_novel_uniqueness_pg.fasta > novel_m_seq.fasta > novel_m_seq.fasta
+bioawk -c fastx '{printf("%s\n%s\n", ">"$name, substr($seq, index($seq, "M")))}'  really_novel_uniqueness_pg.fasta > novel_m_seq.fasta
 ```

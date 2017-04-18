@@ -1,4 +1,4 @@
-#Extracting sequences from fasta file that start with an M using bioawk
+# Extracting sequences from fasta file that start with an M using bioawk
 
 
 

@@ -36,7 +36,7 @@ grep -c '^>' novel_m_seq.fsa
 #count C for each sequence
 
 ```bash
-bioawk -c fastx ' {print name (split($0,a,"C")-1) }' novel_m_seq.fsa
+bioawk -c fastx ' {print (split($0,a,"C")-1) }' novel_m_seq.fsa
 ```
 
 #sequence length

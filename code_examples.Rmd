@@ -1,0 +1,28 @@
+---
+title: "Code_examples"
+output: html_document
+---
+#function example calculates the square of a number
+
+```{r}
+calc_square <- function(x){
+  
+  x*x
+} 
+```
+
+
+
+
+Creating a Histogram
+
+```{r} 
+ggplot(joined_data, aes(x=seqlen)) + geom_histogram()
+```
+
+
+#insert textfile into table 
+
+file_name <- read_delim("hpc/blastp_db_searches/arachnosb.txt",delim = "\t",col_names = FALSE)
+
+

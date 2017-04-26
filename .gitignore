@@ -39,3 +39,4 @@ vignettes/*.pdf
 
 .DS_Store
 Known proteins
+.Rproj.user

@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+ 
+
+#Function that reads blast, selects certain columns and joins database results to characteristics table
+
+```{r}
+library(tidyverse)
+
+
+
+read_blast <- function(file_name, columns = c(1,2,5,12)){
+ # place this behind the column argument to serve as "default if no other columns are given: c(1,2,5,12) 
+  blast_result <- read_delim(file_name,delim = "\t",col_names = FALSE)
+  blast_result <- blast_result[,columns]
+  names(blast_result) <- c("ID", "Hit_ID", "Evalue", "Description")
+  blast_result <- filter(blast_result, Evalue < 1e-5)
+    # There is sometimes more than one blast hit per protein so we need to pick the best E value for each
+  blast_result <- blast_result %>% group_by(Hit_ID) %>% top_n(1,1/Evalue)
+  
+  # read the file
+  # select the columns
+  # filter out bad blast hits
+
+  blast_result
+}
+
+
+```
+#Using the function for each blast database 
+```{r}
+
+swissb_data <- read_blast("hpc/blastp_db_searches/swissb.txt")
+
+blast_uniprot <- read_blast("hpc/blastp_db_searches/uniprotb.txt", c(1,2,5,13))
+
+blast_arachno <- read_blast("hpc/blastp_db_searches/arachnosb.txt")
+
+blast_nr <- read_blast("hpc/blastp_db_searches/really_novel_uniqueness_pg.blastp_nr")
+
+
+
+
+```
+
+
+
+

@@ -32,6 +32,7 @@ Creating a arachnoserver database
 makeblastdb -in arachnoserver.fasta -out arachnoserverBLAST -dbtype prot
 ```
 
+
 ```bash
 blastp -query really_novel_uniqueness_pg.fasta -db arachnoserverBLAST -outfmt '6 qaccver saccver pident length evalue mismatch gapopen qstart qend sstart send stitle' -max_target_seqs 1 > blastp_arachnoserver.txt
 ```

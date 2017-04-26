@@ -40,3 +40,8 @@ vignettes/*.pdf
 .DS_Store
 Known proteins
 .Rproj.user
+
+#ignore pdf files and R project files
+
+*.Rproj
+*.pdf

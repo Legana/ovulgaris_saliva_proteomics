@@ -10,7 +10,6 @@ output: html_notebook
 library(tidyverse)
 
 
-
 read_blast <- function(file_name, columns = c(1,2,5,12)){
  # place this behind the column argument to serve as "default if no other columns are given: c(1,2,5,12) 
   blast_result <- read_delim(file_name,delim = "\t",col_names = FALSE)
@@ -30,7 +29,7 @@ read_blast <- function(file_name, columns = c(1,2,5,12)){
 
 ```
 #Using the function for each blast database 
-```{r}
+```{r reading_raw_tables}
 
 swissb_data <- read_blast("hpc/blastp_db_searches/swissb.txt")
 
@@ -40,11 +39,35 @@ blast_arachno <- read_blast("hpc/blastp_db_searches/arachnosb.txt")
 
 blast_nr <- read_blast("hpc/blastp_db_searches/really_novel_uniqueness_pg.blastp_nr")
 
+sequence_data <- read_table2("hpc/blastp_db_searches/npcc.txt",col_names = FALSE)
+names(sequence_data) <- c("ID","signalp","num_cysteines","seqlen","cysteine_percentage")
+sequence_data <- sequence_data %>% filter(!is.na(ID))
 
+```
+```{r joining}
 
+#join the characteristic table to swissprot
+
+joined_data <- left_join(sequence_data,swissb_data, by = c("ID"="ID"))
+
+#merge 2 join joined_data with uniprot data.
+
+joined_data2 <- left_join(joined_data,blast_uniprot, by = c("ID"="ID"), suffix = c(".swissb",".uniprot_toxins"))
+
+#Merge 3: join joined_data with arachnoserver 
+
+joined_data3 <- left_join(joined_data2,blast_arachno, by = c("ID"="ID"))
+
+#merge 4: join joined_data with nr
+
+joined_data4 <- left_join(joined_data3,blast_nr, by = c("ID"="ID") , suffix = c(".arachnoserver",".nr"))
 
 ```
 
+#Now write the joined data to a file
 
+```{r write_data_to_file}
+  write_delim(joined_data4,"joined_w_heads.tsv",delim = "\t")
+```
 
 

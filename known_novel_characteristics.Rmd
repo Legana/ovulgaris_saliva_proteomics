@@ -40,18 +40,40 @@ known_char$cysteine_per_length <- (known_char$num_cysteines / known_char$seqlen)
 novel_char$cysteine_per_length <- (novel_char$num_cysteines / novel_char$seqlen)
 
 
+
 #binding the novel and known characteristic tables together 
 
 known_novel_chars <- rbind(known_char, novel_char) 
 
 
+```   
+
+   
+```{r stats}
+#getting the average cysteine per length (known: 0.02526875. novel: 0.02336596)
+
+mean(known_char[,"cysteine_per_length"])
+
+mean(novel_char[,"cysteine_per_length"])
 
 
+#average length (known: 237.1076, novel: )
 
+mean(known_char[,"seqlen"])
 
+mean(novel_char[,"seqlen"])
+
+#standard deviation of length and cysteines_Per_length for known and novel
+
+sd(known_char[,"seqlen"]) #207.4107
+sd(known_char[,"cysteine_per_length"]) #0.02285751
+
+sd(novel_char[,"seqlen"]) #56.69188
+sd(novel_char[,"cysteine_per_length"]) #0.03247534
 ```
 
 ```{r echo=FALSE}
+
 library(ggplot2)
 
 #histogram of known and novel characteristics showing sequence length

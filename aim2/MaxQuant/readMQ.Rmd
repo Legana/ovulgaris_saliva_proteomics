@@ -1,0 +1,38 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+How to read and interpret the MaxQuant proteinGroups file
+
+```{r}
+library(tidyverse)
+
+# This may report parsing failures.  Provided you end up with 2945 rows and that all your LFQ observations are present the data is OK
+
+all_mq_data <- read_tsv("proteinGroups.txt")
+
+# Cut out only the quantitative data (The LFQ Values) and also the "Majority.protein.IDs" which identify protein groups
+
+mq_lfq <- all_mq_data %>% select(`Majority protein IDs`,contains("LFQ"))
+
+# For simplicity rename columns with spaces
+colnames(mq_lfq) <- make.names(colnames(mq_lfq))
+
+# Note that the Majority.protein.IDs column contains multiple identifiers.  This is because MaxQuant produces quantification for groups of proteins that share the same peptide.  Since these proteins can't be distinguished on the basis of Mass Spec data they get grouped together.  
+
+# If you need to match IDs across maxquant and blast (etc and other things) you will need to split on the basis of Majority.protein.IDs.  Do this as follows
+
+library(splitstackshape)
+
+mq_lfq_long <- cSplit(mq_lfq,"Majority.protein.IDs",sep = ";",direction = "long")
+
+# Now you can filter out contaminants and decoys
+
+mq_lfq_long_filt <- mq_lfq_long %>% 
+  filter(!grepl(Majority.protein.IDs,pattern="CON")) %>% 
+  filter(!grepl(Majority.protein.IDs,pattern="REV"))
+
+
+write_tsv(mq_lfq_long_filt, "maxquant_proteins.tsv")
+```

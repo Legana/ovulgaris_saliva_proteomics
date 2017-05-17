@@ -76,11 +76,30 @@ sd(novel_char[,"cysteine_per_length"]) #0.03247534
 
 library(ggplot2)
 
-#histogram of known and novel characteristics showing sequence length
+#density plot of known and novel characteristics showing sequence length
 
-ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,200)
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500)
 
-#histogram of known and novel characteristics showing cysteine percentage (number of cysteine/length)
+#change x and y labels
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density")
+
+#hide minor and major gridlines
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank())
+
+#position legend on plot
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank()) + theme(legend.position = c(.8, .8))
+
+#Change legend appearance and name
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank()) + theme(legend.position = c(.8, .8), legend.background = element_rect(colour = "black", size=0.3), legend.title = element_blank())
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank()) + theme(legend.position = c(.8, .8), legend.background = element_rect(colour = "black", size=0.3), legend.title = element_blank())
+
+
+#density plot of known and novel characteristics showing cysteine percentage (number of cysteine/length)
 
 ggplot(data=known_novel_chars, aes(x=num_cysteines/seqlen)) + geom_density(aes(color=db)) + xlim(0,0.10)
 

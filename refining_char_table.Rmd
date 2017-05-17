@@ -3,6 +3,7 @@ title: "refining_char_table"
 output: html_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -30,4 +31,21 @@ write_delim(high_cysteine_and_signals,"real_novel_proteins_char.tsv",delim = "\t
 
 ```
 
+```{r now_for_known}
 
+#insert xls file
+known_signals_chars <- readxl::read_xls("hpc/signalp-4.1/known_seq_chars.xls",col_names = FALSE)
+
+#name columns
+names(known_signals_chars) <- c("ID","num_cysteines","seqlen","signalp")
+
+#filter to have positive signal peptides only
+known_signals <- filter(known_signals_chars, signalp == "Y") #1031
+
+#filter to have high cysteines 
+known_signals_high_c <- filter(known_signals, num_cysteines > 6) #463
+
+known_short_seq <- filter(known_signals_high_c, seqlen <150) #112
+
+
+```

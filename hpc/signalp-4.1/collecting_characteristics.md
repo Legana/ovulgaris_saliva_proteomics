@@ -33,6 +33,12 @@ cat novel_m_seq.fsa_short_out  | awk '$10=="Y"{print $10}' | wc -l
 grep -c '^>' novel_m_seq.fsa
 ```
 
+#remove first two redundant lines in signalp output and output to new file
+
+```bash
+cat max_sigp.tsv | tail -n +3 > max_sigpn.tsv
+```
+
 #count C for each sequence
 
 ```bash

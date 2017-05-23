@@ -19,7 +19,7 @@ signalp <- read_tsv("sigp.tsv", col_names = FALSE)
 names(signalp) <- c("ID", "SignalP")
 
 mwpi <- read_tsv("max_mw_pi.tsv", col_names = FALSE)
-names(mwpi) <- c("ID", "Molecular weight","Isoelectric point")
+names(mwpi) <- c("ID", "Molecular weight (DA)","Isoelectric point")
 ```
 
 
@@ -61,15 +61,23 @@ blast_uniprot <- read_blast("max_uniprot_blast.tsv", c(1,2,5,13))
 
 blast_swissprot <- read_blast("max_swissprot_blastp.tsv")
 
-blast_nr <- read_blast("")
+blast_nr <- read_blast("max_nr.blastp")
 ```
 
 ```{join_char_table_to_blast_dataframes}
 
+joined_data <- left_join(join_char3, blast_arachno, by = c("ID"="ID"))
 
+joined_data2 <- left_join(joined_data,blast_uniprot, by = c("ID"="ID"), suffix = c(".arachnoserver",".uniprot_toxins"))
+
+joined_data3 <- left_join(joined_data2,blast_swissprot, by = c("ID"="ID")) 
+
+joined_data4 <- left_join(joined_data3,blast_nr, by = c("ID"="ID") , suffix = c(".swissprot",".nr"))
 ```
 
-```{r}
+```{write_data_to_file}
 
+write_delim(joined_data4,"maxquant_protein_table.tsv",delim = "\t")
+  
 ```
 

@@ -11,3 +11,9 @@ while read protein_id; do samtools faidx ../../known_novel_sequences.fsa "$prote
 ```bash
 while read protein_id; do samtools faidx maxquant_clean.fasta "$protein_id"; done < <(awk '{printf("%s\n",$1)}' blast_uniprot.tsv)
 ```
+
+#output it to FASTA file so it can be imported to Geneious and blasted with BLASTP.
+
+```bash
+while read protein_id; do samtools faidx maxquant_clean.fasta "$protein_id"; done < <(awk '{printf("%s\n",$1)}' blast_uniprot.tsv) > blastp_uniprot.fasta
+```

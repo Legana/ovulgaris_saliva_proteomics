@@ -6,43 +6,51 @@
 
 import argparse
 import sys
+import string
 
-MAX_C_COUNT = 5;
-FRAME_SIZE = 10;
-FRAME_ADVANCE = 10;
+#FRAME_ADVANCE = 1;
 CYSTEINE = 'C'
 
 parser = argparse.ArgumentParser(description='Calculate cysteine density for protein sequences.')
 
 parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),default=sys.stdin)
+
+#defining options that are able to be set through the command line
+
+parser.add_argument('-m','--min-count', type=int, default=6, help='Minimum number of cysteines within window to call a knot')
+parser.add_argument('-w','--window', type=int, default=30, help='Size of window over which cysteine counts are calculated')
+parser.add_argument('-f','--frame', type=int, default=1, help='Length of moving frame')
+
 args = parser.parse_args()
 
-from Bio.SeqUtils.ProtParam import ProteinAnalysis
+
 from Bio import SeqIO
 for record in SeqIO.parse(args.infile, "fasta"):
     seq = str(record.seq)
-    my_prot = ProteinAnalysis(seq)
-    #print '{}\t {}\t {}\t {}'.format(record.id, my_prot.molecular_weight(), my_prot.isoelectric_point(), seq)
 
     knotFound = False;
-    cCount = 0;
-
-#CREATE another loop for multiple, advance by 3, 5 and 10 OR copy the loop 3 times
+    max_c_count = 0
+#to do: CREATE another loop for more specific cysteine knot as a separate column (add it as e.g + str(superknotFound)) copy below section
 
     #Looping through sequence, by size FRAME_ADVANCE
-    for i in range(0, len(seq), FRAME_ADVANCE):
-        frame = seq[i:FRAME_SIZE+i]
-
+    for i in range(0, len(seq), args.frame):
+        frame = seq[i:args.window+i]
+        cCount = 0;
         #print frame
-
+        cCount = string.count(frame,CYSTEINE)
         #Count how many CYSTEINE are in frame
-        for j in range(len(frame)):
-            if (CYSTEINE in frame[j]):
-                cCount = cCount + 1;
+        # for j in range(len(frame)):
+        #     if (CYSTEINE in frame[j]):
+        #         cCount = cCount + 1;
+
+        if ( cCount > max_c_count):
+            max_c_count = cCount;
 
         #DOES A KNOT EXIST?
-        if (cCount >= MAX_C_COUNT):
+        if (cCount >= args.min_count):
             knotFound = True;
 
-    if (knotFound):
-        print "knot found: " + record.id
+    print record.id + "\t" + str(max_c_count) + "\t" + str(knotFound)
+
+    # if (knotFound):
+    #     print "knot found: " + record.id

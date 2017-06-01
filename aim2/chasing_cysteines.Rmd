@@ -42,17 +42,191 @@ uniprot_c_100$width <- c ("100")
 cysteine_range <- rbind(uniprot_c_def, uniprot_c_12, uniprot_c_50, uniprot_c_100) 
 ```
 
+
 ```{r}
 
 library(ggplot2)
 
 
-ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_histogram(aes(color=width), binwidth = 2)
+ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
 
 ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_histogram(aes(color=width), binwidth = 2) + scale_x_continuous(breaks=scales::pretty_breaks(n=8))
 
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+#same for arachnoserver 
+
+library(tidyverse)
+
+#importing dataset as data frames and naming columns
+#get cysteine range using narrow range (12), default (30), wide range (50) and very wide range (100)
+
+arachno_c_def <- read_tsv("arachno_cyst_dens_def.tsv", col_names = FALSE)
+  names(arachno_c_def) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+#adding a column called width with respective value
+arachno_c_def$width <- c ("30")
+
+arachno_c_12 <- read_tsv("arachno_cyst_dens_12.tsv", col_names = FALSE)
+  names(arachno_c_12) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_12$width <- c ("12")
+  
+arachno_c_50 <- read_tsv("arachno_cyst_dens_50.tsv", col_names = FALSE)
+  names(arachno_c_50) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_50$width <- c ("50")
+  
+arachno_c_100 <- read_tsv("arachno_cyst_dens_100.tsv", col_names = FALSE)
+  names(arachno_c_100) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_100$width <- c ("100")
+
+```
+
+```{r}
+
+arachno_cyst_range <- rbind(arachno_c_def, arachno_c_12, arachno_c_50, arachno_c_100) 
+
+```
+
+```{r}
+
+library(ggplot2)
+
+ggplot(data=arachno_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
+```
+
+
+```{r}
+#and again the same for swissprot 
+
+library(tidyverse)
+
+#importing dataset as data frames and naming columns
+#get cysteine range using narrow range (12), default (30), wide range (50) and very wide range (100)
+
+swisspr_c_def <- read_tsv("swisspr_cyst_dens_def.tsv", col_names = FALSE)
+  names(swisspr_c_def) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+#adding a column called width with respective value
+swisspr_c_def$width <- c ("30")
+
+swisspr_c_12 <- read_tsv("swisspr_cyst_dens_12.tsv", col_names = FALSE)
+  names(swisspr_c_12) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+swisspr_c_12$width <- c ("12")
+  
+swisspr_c_50 <- read_tsv("swisspr_cyst_dens_50.tsv", col_names = FALSE)
+  names(swisspr_c_50) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+swisspr_c_50$width <- c ("50")
+  
+swisspr_c_100 <- read_tsv("swisspr_cyst_dens_100.tsv", col_names = FALSE)
+  names(swisspr_c_100) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+swisspr_c_100$width <- c ("100")
+
+```
+
+```{r}
+swisspr_cyst_range <- rbind(swisspr_c_def, swisspr_c_12, swisspr_c_50, swisspr_c_100) 
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0, 6)
+```
+
+```{r}
+#testing cysteine peaks between window 12 and 30 
+
+library(tidyverse)
+
+
+uniprot_c_15 <- read_tsv("unipr_cyst_dens_15.tsv", col_names = FALSE)
+  names(uniprot_c_15) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+uniprot_c_15$width <- c ("15")
+  
+uniprot_c_18 <- read_tsv("unipr_cyst_dens_18.tsv", col_names = FALSE)
+  names(uniprot_c_18) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+uniprot_c_18$width <- c ("18")
+  
+uniprot_c_21 <- read_tsv("unipr_cyst_dens_21.tsv", col_names = FALSE)
+  names(uniprot_c_21) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+uniprot_c_21$width <- c ("21")
+
+uniprot_c_25 <- read_tsv("unipr_cyst_dens_25.tsv", col_names = FALSE)
+  names(uniprot_c_25) <- c("ID", "max.cysteine_per_window", "Knot")
+
+uniprot_c_25$width <- c ("25")
+
+uniprot_c_28 <- read_tsv("unipr_cyst_dens_28.tsv", col_names = FALSE)
+  names(uniprot_c_28) <- c("ID", "max.cysteine_per_window", "Knot")
+
+uniprot_c_28$width <- c ("28")
+
+#bind it 
+test_cyst_range <- rbind(uniprot_c_15, uniprot_c_18, uniprot_c_21, uniprot_c_25, uniprot_c_28) 
+
+#graph it
+
+ggplot(data=test_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
+```
+
+```{r}
+#testing arachnoserver
+
+arachno_c_15 <- read_tsv("arachno_cyst_dens_15.tsv", col_names = FALSE)
+  names(arachno_c_15) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_15$width <- c ("15")
+  
+arachno_c_18 <- read_tsv("arachno_cyst_dens_18.tsv", col_names = FALSE)
+  names(arachno_c_18) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_18$width <- c ("18")
+  
+arachno_c_21 <- read_tsv("arachno_cyst_dens_21.tsv", col_names = FALSE)
+  names(arachno_c_21) <- c("ID", "max.cysteine_per_window", "Knot")
+  
+arachno_c_21$width <- c ("21")
+
+arachno_c_25 <- read_tsv("arachno_cyst_dens_25.tsv", col_names = FALSE)
+  names(arachno_c_25) <- c("ID", "max.cysteine_per_window", "Knot")
+
+arachno_c_25$width <- c ("25")
+
+arachno_c_28 <- read_tsv("arachno_cyst_dens_28.tsv", col_names = FALSE)
+  names(arachno_c_28) <- c("ID", "max.cysteine_per_window", "Knot")
+
+arachno_c_28$width <- c ("28")
+
+#bind it 
+test2_cyst_range <- rbind(arachno_c_15, arachno_c_18, arachno_c_21, arachno_c_25, arachno_c_28) 
+
+#graph it
+
+ggplot(data=test2_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
+```
+
+```{r}
+#binding all windows together 
+
+full_unipr_c_range <- rbind(uniprot_c_12, uniprot_c_15, uniprot_c_18, uniprot_c_21, uniprot_c_25, uniprot_c_28, uniprot_c_def, uniprot_c_50, uniprot_c_100)
+
+full_arachno_c_range <- rbind(arachno_c_12, arachno_c_15, arachno_c_18, arachno_c_21, arachno_c_25, arachno_c_28, arachno_c_def, arachno_c_50, arachno_c_100)
+
+ggplot(data=full_unipr_c_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0,11)
+
+ggplot(data=full_arachno_c_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0,11)
+
+```
+
+

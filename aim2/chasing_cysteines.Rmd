@@ -139,6 +139,8 @@ swisspr_cyst_range <- rbind(swisspr_c_def, swisspr_c_12, swisspr_c_50, swisspr_c
 library(ggplot2)
 
 ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0, 6)
+
+ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_freqpoly(aes(color=width),binwidth=1) + xlim(0,8)
 ```
 
 ```{r}
@@ -229,4 +231,23 @@ ggplot(data=full_arachno_c_range, aes(x=max.cysteine_per_window)) + geom_density
 
 ```
 
+```{r}
 
+ggplot(data=full_arachno_c_range %>% filter(width %in% c("30","50","100")) , aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0,11)
+
+ggplot(data=full_arachno_c_range %>% filter(width %in% c("12","30","50","100")) , aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0,11)
+
+ggplot(data=full_arachno_c_range  %>% filter(width %in% c("12","30","50","100")), aes(x=max.cysteine_per_window)) +
+  geom_freqpoly(aes(color=width),binwidth=1)  
+
+```
+
+```{r}
+ggplot(data=full_arachno_c_range , aes(x=max.cysteine_per_window)) +
+  geom_freqpoly(aes(color=width),binwidth=1)  
+  #geom_density(aes(color=width),bw=0.6) + xlim(0,20)
+ggplot(data=full_unipr_c_range , aes(x=max.cysteine_per_window)) +
+  geom_freqpoly(aes(color=width),binwidth=1)  
+
+
+```

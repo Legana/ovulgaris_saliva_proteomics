@@ -81,3 +81,51 @@ write_delim(joined_data4,"maxquant_protein_table.tsv",delim = "\t")
   
 ```
 
+```{r}
+
+
+maxquant_protein_table2 <- read_tsv("maxquant_protein_table.tsv", col_names = TRUE)
+
+#remove the cysteine count column
+maxquant_protein_table2$"Cysteine count" <- NULL
+
+#import cysteine data
+cysteine_count_per_30aa <- read_tsv("maquant_cys_dens_def.tsv", col_names = FALSE)
+names(cysteine_count_per_30aa) <- c("ID", "max_cysteine_count", "knot_found")
+
+#join two dataframes together
+
+maxquant_protein_table_with_c <- left_join(maxquant_protein_table2, cysteine_count_per_30aa, by = "ID")
+
+#test for duplicates (found 202 duplicate rows - why? )
+maxquant_protein_table_with_c[duplicated(maxquant_protein_table_with_c), ]
+
+#obtain only the unique rows (i.e without duplicates!)
+unique_protein_table <- unique(maxquant_protein_table_with_c)
+
+#get a list of the column names 
+colnames(unique_protein_table)
+
+#reorder columns so cysteine information is next to other protein characteristics
+
+reordered_unique_protein_table <- unique_protein_table[c(1,2,3,18,19,4:17)]
+
+```
+
+
+```{r}
+
+write_delim(reordered_unique_protein_table,"maxquant_protein_table_updated.tsv",delim = "\t")
+
+```
+
+```{r}
+#refining the table to obtain a smaller subset with likely toxin candidates
+
+signals_only <- filter(reordered_unique_protein_table, SignalP == "Y")
+
+signals_na <- filter(reordered_unique_protein_table, is.na(SignalP))
+
+high_cysteines <- filter(reordered_unique_protein_table, max_cysteine_count >= 6)
+```
+

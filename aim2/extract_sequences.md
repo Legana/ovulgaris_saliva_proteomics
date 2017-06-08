@@ -17,3 +17,10 @@ while read protein_id; do samtools faidx maxquant_clean.fasta "$protein_id"; don
 ```bash
 while read protein_id; do samtools faidx maxquant_clean.fasta "$protein_id"; done < <(awk '{printf("%s\n",$1)}' blast_uniprot.tsv) > blastp_uniprot.fasta
 ```
+
+#same for sequences which have been found to contain Toxin characteristics as per collecting_protein_information.Rmd
+#added a line to remove first line in the file as it contained a header
+
+```bash
+while read protein_id; do samtools faidx maxquant_clean.fasta "$protein_id"; done < <(awk '{printf("%s\n",$1)}' Toxin_chars_table.tsv) | tail -n +2 > toxin_chars.fasta
+```

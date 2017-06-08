@@ -83,6 +83,7 @@ write_delim(joined_data4,"maxquant_protein_table.tsv",delim = "\t")
 
 ```{r}
 
+library(tidyverse)
 
 maxquant_protein_table2 <- read_tsv("maxquant_protein_table.tsv", col_names = TRUE)
 
@@ -97,6 +98,14 @@ names(cysteine_count_per_30aa) <- c("ID", "max_cysteine_count", "knot_found")
 
 maxquant_protein_table_with_c <- left_join(maxquant_protein_table2, cysteine_count_per_30aa, by = "ID")
 
+
+```
+
+
+```{r}
+
+#neaten table
+
 #test for duplicates (found 202 duplicate rows - why? )
 maxquant_protein_table_with_c[duplicated(maxquant_protein_table_with_c), ]
 
@@ -110,22 +119,50 @@ colnames(unique_protein_table)
 
 reordered_unique_protein_table <- unique_protein_table[c(1,2,3,18,19,4:17)]
 
-```
+#convert molecular weight from DA to kDA and rename column
 
+reordered_unique_protein_table$`Molecular weight (DA)` <- reordered_unique_protein_table$`Molecular weight (DA)`/1000
 
-```{r}
+names(reordered_unique_protein_table)[6] <- "Molecular_weight(kDA)"
 
-write_delim(reordered_unique_protein_table,"maxquant_protein_table_updated.tsv",delim = "\t")
+#decrease decimals for numeric columns
+
+reordered_unique_protein_table$`Molecular_weight(kDA)` <- round(reordered_unique_protein_table$`Molecular_weight(kDA)`, digits =2)
+
+reordered_unique_protein_table$`Isoelectric point` <- round(reordered_unique_protein_table$`Isoelectric point`, digits =2)
+
+#rename Sequence length to contain no spaces
+
+names(reordered_unique_protein_table)[2] <- "Sequence_length"
 
 ```
 
 ```{r}
 #refining the table to obtain a smaller subset with likely toxin candidates
 
-signals_only <- filter(reordered_unique_protein_table, SignalP == "Y")
 
-signals_na <- filter(reordered_unique_protein_table, is.na(SignalP))
+#change NA values to "UN" for unknown
+reordered_unique_protein_table$SignalP[is.na(reordered_unique_protein_table$SignalP)] <- "UN"
 
-high_cysteines <- filter(reordered_unique_protein_table, max_cysteine_count >= 6)
+#select the characters Y and UN from the SignalP column (use %in% if it is the same column or | (=or) if it is in a different column)
+
+signals_only <- reordered_unique_protein_table %>% filter(SignalP %in% c("Y", "UN"))
+
+#now select rows from the signals_only dataframe that are equal or greater than 6 in cysteine density
+
+high_cysteines <- filter(signals_only, max_cysteine_count >= 6)
+
+#find proteins shorter than 150aa
+
+short <- filter(high_cysteines, Sequence_length <150)
+```
+
+
+```{r}
+write_delim(reordered_unique_protein_table,"maxquant_protein_table_updated.tsv",delim = "\t")
+
+write_delim(high_cysteines, "Toxin_chars_table.tsv", delim= "\t")
+
+write_delim(short, "Toxin_chars_short_table.tsv", delim = "\t")
 ```
 

@@ -1,0 +1,51 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# unix bioawk line to get name and sequence lengths: 
+# cat uniprot-venoms_toxins.fasta | bioawk -c fastx '{printf("%s\t%s\n", $name,length($seq))}'
+
+
+```{r}
+
+library(tidyverse)
+
+arachnoserver <- read_tsv("arachnoserver_seqlen.tsv", col_names= FALSE)
+names(arachnoserver) <- c("ID", "sequence_length")
+
+mean(arachnoserver$sequence_length, na.rm = TRUE)
+
+
+uniprot_toxins <- read_tsv("uniprot_toxins_seqlen.tsv", col_names = FALSE)
+names(uniprot_toxins) <- c("ID", "sequence_length")
+
+mean(uniprot_toxins$sequence_length, na.rm = TRUE)
+
+#other ways to calculate the mean that work on obnoxious tibbles (see uniprot_toxins[,2] as the mean() doesnt work on this because of the tibble format)
+
+summarise(uniprot_toxins, Average = mean(sequence_length, na.rm = T))
+
+mean(uniprot_toxins[["sequence_length"]])
+```
+
+```{r}
+library(ggplot2)
+
+#arachnoserver
+
+ggplot(data = arachnoserver, aes(x=sequence_length)) + geom_density(bw=10) + xlim(0,300)
+
+ggplot(data = arachnoserver, aes(x=sequence_length)) + geom_histogram()
+
+ggplot(data = arachnoserver, aes(x=sequence_length)) + geom_freqpoly(binwidth=30) + xlim(0,450)
+
+#uniprot toxins
+
+ggplot(data = uniprot_toxins, aes(x=sequence_length)) + geom_freqpoly() + xlim(0,350)
+
+ggplot(data = uniprot_toxins, aes(x=sequence_length)) + geom_density(bw=15) + xlim(0,600) 
+
+
+```
+

@@ -1,0 +1,59 @@
+---
+title: "lfq_manipulation.Rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(tidyverse)
+
+#import maxquant results
+maxquant_data <-read_tsv("proteinGroups.txt", na="0")
+
+#cut it to LFQ values and majority protein ids which refer to protein groups
+lfq <- maxquant_data %>% select(`Majority protein IDs`,contains("LFQ")) %>% rownames_to_column(var= "group" )
+
+#rename column names to remove spaces
+colnames(lfq) <- make.names(colnames(lfq))
+
+#remove contaminant data
+
+lfq_clean<- lfq %>% filter(!grepl(Majority.protein.IDs,pattern="CON")) %>% 
+  filter(!grepl(Majority.protein.IDs,pattern="REV"))
+
+# Read in the sample data headings 
+sample_table <- read_tsv("sample_table.txt",col_names = FALSE)
+
+#replace the LFQ column names with sample data headings
+
+colnames(lfq_clean) <- c("group","Majority.protein.ID",sample_table$X2)
+
+#turn the data into presence absence. 1 if a protein is present in the sample, 0 if it is not
+
+prot_pa <- is.na(lfq_clean[-c(1,2)])*1
+
+#add the protein ids as rownames 
+
+rownames(prot_pa) <- lfq_clean$Majority.protein.ID
+
+#sum each column to find how many proteins are present in each sample
+
+prot_pa_sum <- colSums(prot_pa, na.rm = FALSE, delim="\t")
+
+plot(prot_pa_sum)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

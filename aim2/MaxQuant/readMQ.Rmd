@@ -8,31 +8,200 @@ How to read and interpret the MaxQuant proteinGroups file
 ```{r}
 library(tidyverse)
 
-# This may report parsing failures.  Provided you end up with 2945 rows and that all your LFQ observations are present the data is OK
+ # This may report parsing failures.  Provided you end up with 2945 rows and that all your LFQ observations are present the data is OK
 
-all_mq_data <- read_tsv("proteinGroups.txt")
+all_mq_data <- read_tsv("proteinGroups.txt", na="0")
 
 # Cut out only the quantitative data (The LFQ Values) and also the "Majority.protein.IDs" which identify protein groups
 
-mq_lfq <- all_mq_data %>% select(`Majority protein IDs`,contains("LFQ"))
+mq_lfq <- all_mq_data %>% select(`Majority protein IDs`,contains("LFQ")) %>% rownames_to_column(var= "group" )
+
 
 # For simplicity rename columns with spaces
 colnames(mq_lfq) <- make.names(colnames(mq_lfq))
 
+mqlfq_filtered <- mq_lfq %>% filter(!grepl(Majority.protein.IDs,pattern="CON")) %>% 
+  filter(!grepl(Majority.protein.IDs,pattern="REV"))
+
+source("https://bioconductor.org/biocLite.R")
+biocLite("limma")
+library(limma)
+
+# Read in the sample data
+sample_table <- read_tsv("sample_table.txt",col_names = FALSE)
+
+colnames(mqlfq_filtered) <- c("group","Majority.protein.ID",sample_table$X2)
+
+#mds plot shows all samples
+
+mds_data <- plotMDS((mqlfq_filtered %>% select(-Venom_1_1))[-c(1,2)]) #Removing Venom_1_1 as it has too much missing data
+mds_data_p <- data.frame(x=mds_data$x,y=mds_data$y,biosample=stringr::str_match(names(mds_data$x),pattern="([^\\_]*)")[,2],replicate=stringr::str_match(names(mds_data$x),pattern="([^\\_]*)_(.)")[,3])
+ggplot(mds_data_p,aes(x=x,y=y)) + geom_point(aes(color=biosample, shape=replicate))
+
+```
+
+
+```{r}
+
+biocLite("ComplexHeatmap")
+
+library(ComplexHeatmap)
+
+library(grid)
+
+mq_pa <- is.na(mqlfq_filtered[-c(1,2)])*1
+rownames(mq_pa) <- mqlfq_filtered$Majority.protein.ID
+
+Heatmap(mq_pa,show_row_names = FALSE)
+
+```
+
+```{r}
 # Note that the Majority.protein.IDs column contains multiple identifiers.  This is because MaxQuant produces quantification for groups of proteins that share the same peptide.  Since these proteins can't be distinguished on the basis of Mass Spec data they get grouped together.  
 
 # If you need to match IDs across maxquant and blast (etc and other things) you will need to split on the basis of Majority.protein.IDs.  Do this as follows
 
 library(splitstackshape)
 
-mq_lfq_long <- cSplit(mq_lfq,"Majority.protein.IDs",sep = ";",direction = "long")
-
-# Now you can filter out contaminants and decoys
-
-mq_lfq_long_filt <- mq_lfq_long %>% 
-  filter(!grepl(Majority.protein.IDs,pattern="CON")) %>% 
-  filter(!grepl(Majority.protein.IDs,pattern="REV"))
+mqlfq_filtered_long <- cSplit(mqlfq_filtered,"Majority.protein.ID",sep = ";",direction = "long")
 
 
-write_tsv(mq_lfq_long_filt, "maxquant_proteins.tsv")
+sequence_analysis_data <- read_tsv("../maxquant_protein_table_updated.tsv")
+
+
+
+merged_data <- mqlfq_filtered_long %>% left_join(sequence_analysis_data,by=c("Majority.protein.ID" = "ID"))
+
+agg_fun <- function(col){
+  if ( class(col) == "character"){
+    return(paste(unique(col),collapse = ";"))
+  } else {
+    if ( length(which(!is.na(col)))== 0){
+      return(NA)
+    }
+    return(mean(col,na.rm = TRUE))
+  }
+}
+
+agg_merged_data <- aggregate(merged_data,by=list(agg_group=merged_data$group),agg_fun) %>% select(-agg_group)
+
+
+merged_pa <- is.na(agg_merged_data[,3:23])*1
+rownames(merged_pa) <- agg_merged_data$Majority.protein.ID
+
+
 ```
+
+
+```{r}
+selected_rows=1:2862
+
+pa_hm <- Heatmap(merged_pa[selected_rows,], show_row_names = FALSE,km = 6)
+
+annotation_data <- data.frame(is_short= (agg_merged_data$Sequence_length < 200)*1,has_knot=(agg_merged_data$knot_found=="True")*1,has_signal=agg_merged_data$SignalP )
+
+pa_hm_annotation <- rowAnnotation(annotation_data)
+
+draw(pa_hm + pa_hm_annotation)
+```
+
+```{r}
+quant_data <- agg_merged_data[,2:23]
+info_data <- agg_merged_data[,-c(3:23)]
+
+
+quant_data_tall <- quant_data %>% gather("sample","intensity",-Majority.protein.ID)
+quant_data_tall$grouping <- stringr::str_match(quant_data_tall$sample,pattern="([^\\_]*)_(.)")[,1]
+
+
+bioav_lfq_data <- quant_data_tall %>% 
+  group_by(Majority.protein.ID,grouping) %>% 
+  summarise(intensity = mean(intensity,na.rm = TRUE))
+
+bioav_lfq_data$intensity[is.nan(bioav_lfq_data$intensity)] <- NA
+
+quant_data_av <- bioav_lfq_data %>% spread(grouping,intensity)
+
+condition <- stringr::str_match(colnames(quant_data_av[,-1]),pattern="([^\\_]*)_(.)")[,2]
+design_data <- data.frame(condition)
+
+
+design <- model.matrix(~condition,design_data)
+
+log2_norm_data <- normalizeBetweenArrays(log2(quant_data_av[,-1]))
+
+fit <- lmFit(log2_norm_data,design)
+efit <- eBayes(fit)
+
+tt <- topTable(efit, genelist = info_data,n=Inf)
+
+tt_significant <- tt %>% filter(adj.P.Val<0.05)
+
+```
+
+Looking at a contrast between venom and anterior salivary gland
+
+```{r}
+
+design1 <- model.matrix(~0+condition,design_data)
+
+contrasts <- makeContrasts(
+  venom_vs_psg = conditionVenom-conditionPosterior, 
+  psg_vs_asg = conditionPosterior-conditionAnterior,
+    venom_vs_asg = conditionVenom-conditionAnterior,
+  conditionPosterior - (conditionDay1 + conditionDay20 + conditionDay30),
+    levels=design1)
+
+#venom_vs_av = conditionVenom - (conditionPosterior + conditionAnterior + conditionVenom) / 3
+
+#topTable is function thst does tt
+  
+fit1 <- lmFit(log2_norm_data,design1)
+
+cfit1 <- contrasts.fit(fit1,contrasts)
+
+efit1 <- eBayes(cfit1)
+
+tt_venom_vs_psg <- topTable(efit1,coef='venom_vs_psg',genelist = info_data,n=Inf) %>% filter(adj.P.Val<0.05)
+tt_psg_vs_asg <- topTable(efit1,coef='psg_vs_asg',genelist = info_data,n=Inf) %>% filter(adj.P.Val<0.05)
+tt_venom_vs_asg <- topTable(efit1,coef='venom_vs_asg',genelist = info_data,n=Inf) %>% filter(adj.P.Val<0.05)
+
+tt_psgad_vs_psg_juv <-topTable(efit1,coef='conditionPosterior - (conditionDay1 + conditionDay20 + conditionDay30)', genelist = info_data,n=Inf) %>% filter(adj.P.Val<0.05)
+
+
+#toptable that is an f test against all 3 contrasts I defined
+
+tt_all <- topTable(efit1, coef=1:3,genelist = info_data,n=Inf) %>% filter(adj.P.Val<0.05)
+```
+
+Heatmap of significant values
+
+```{r}
+significant_protein_ids <- union(tt_venom_vs_asg$Majority.protein.ID,tt_venom_vs_psg$Majority.protein.ID)
+
+significant_log2_intensities <- log2_norm_data[match(significant_protein_ids,info_data$Majority.protein.ID),]
+rownames(significant_log2_intensities) <- significant_protein_ids
+
+hm_data <- significant_log2_intensities[,c(1,2,9:13)]
+
+row_avs <- apply(hm_data,1,mean,na.rm=TRUE)
+
+hm_diffs <- hm_data-row_avs
+
+pdf(file = "Significant_Heatmap.pdf", width = 20,height = 30)
+Heatmap(hm_diffs,row_names_max_width = unit(0.5,"npc"))
+dev.off()
+
+hm_psg_ad_juv <- significant_log2_intensities[,c(3:10)]
+
+pdf(file ="sig_juv_ad_psg.pdf")
+Heatmap(hm_psg_ad_juv)
+
+
+
+# library(imputeLCMD)
+# 
+# hm_imputed <- impute.MAR.MNAR(significant_log2_intensities,model.selector = model.Selector(significant_log2_intensities))
+# Heatmap(hm_imputed,km=5)
+```
+

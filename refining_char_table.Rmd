@@ -39,13 +39,21 @@ known_signals_chars <- readxl::read_xls("hpc/signalp-4.1/known_seq_chars.xls",co
 #name columns
 names(known_signals_chars) <- c("ID","num_cysteines","seqlen","signalp")
 
+known_max_cys <- read_tsv("known_max_cys.tsv", col_names = FALSE)
+names(known_max_cys) <-c("ID", "max_cysteines", "knot")
+
+known_sigs_char_2 <- left_join(known_signals_chars, known_max_cys, by=c("ID"))
+
 #filter to have positive signal peptides only
-known_signals <- filter(known_signals_chars, signalp == "Y") #1031
+known_signals <- filter(known_sigs_char_2, signalp == "Y") #1031
 
 #filter to have high cysteines 
-known_signals_high_c <- filter(known_signals, num_cysteines > 6) #463
+known_signals_high_c <- filter(known_signals, max_cysteines >= 6) #109
 
-known_short_seq <- filter(known_signals_high_c, seqlen <150) #112
+known_short_seq <- filter(known_signals_high_c, seqlen <150) 
 
+filter(known_signals, knot == "True")
+
+filter(known_sigs_char_2, knot == "True")
 
 ```

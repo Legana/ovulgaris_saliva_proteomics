@@ -24,9 +24,29 @@ novel_char[2] <- NULL
 # OR when you know the column name
 novel_char <- subset( novel_char, select = -cysteine_percentage)
 
+novel_char$cysteine_per_length <- (novel_char$num_cysteines / novel_char$seqlen)
+
 novel_char$db <- c ("novel")
+```
+
+```{r}
+
+#read in output from cysteine program on novel.fasta
+
+novel_max_cys <- read_tsv("novel_max_cys.tsv", col_names = FALSE)
+names(novel_max_cys) <-c("ID", "max_cysteines", "knot")
 
 
+novel_char_2 <- left_join(novel_char, novel_max_cys, by=c("ID"))
+
+mean(novel_char_2$max_cysteines)
+
+sd(novel_char_2$max_cysteines)
+
+filter(novel_char_2, knot == "True")
+```
+
+```{r}
 known_char <- readxl::read_xls("hpc/signalp-4.1/known_name_len_c.xls", col_names = FALSE)
 
 names(known_char) <- c("ID","num_cysteines","seqlen")
@@ -37,14 +57,28 @@ known_char$db <- c ("known")
 
 known_char$cysteine_per_length <- (known_char$num_cysteines / known_char$seqlen)
 
-novel_char$cysteine_per_length <- (novel_char$num_cysteines / novel_char$seqlen)
+#read in output from cysteine program on known.fasta
+
+known_max_cys <- read_tsv("known_max_cys.tsv", col_names = FALSE)
+names(known_max_cys) <-c("ID", "max_cysteines", "knot")
 
 
+known_char_2 <- left_join(known_char, known_max_cys, by=c("ID"))
+
+mean(known_char_2$max_cysteines)
+
+sd(known_char_2$max_cysteines)
+
+filter(known_char_2, knot == "True")
+
+filter(known_char_2, max_cysteines >= 6) %>% filter(known_char_2, )
+```
+
+```{r}
 
 #binding the novel and known characteristic tables together 
 
 known_novel_chars <- rbind(known_char, novel_char) 
-
 
 ```   
 
@@ -98,6 +132,9 @@ ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xl
 
 ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank()) + theme(legend.position = c(.8, .8), legend.background = element_rect(colour = "black", size=0.3), legend.title = element_blank())
 
+# final plot (maybe)
+
+ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db),size=1) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + xlim(0,200) + theme(legend.title = element_blank())
 
 #density plot of known and novel characteristics showing cysteine percentage (number of cysteine/length)
 

@@ -1,0 +1,106 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+
+library(tidyverse)
+
+#import maxquant results
+maxquant_data <-read_tsv("proteinGroups.txt", na="0")
+
+#cut it to LFQ values and majority protein ids which refer to protein groups
+lfq <- maxquant_data %>% select(`Majority protein IDs`,contains("LFQ")) %>% rownames_to_column(var= "group" )
+
+#rename column names to remove spaces
+colnames(lfq) <- make.names(colnames(lfq))
+
+#remove contaminant data
+lfq_clean<- lfq %>% filter(!grepl(Majority.protein.IDs,pattern="CON")) %>% 
+  filter(!grepl(Majority.protein.IDs,pattern="REV"))
+
+#split the multiple identifiers apart 
+
+library(splitstackshape)
+
+lfq_clean_long <- cSplit(lfq_clean,"Majority.protein.ID",sep = ";",direction = "long")
+
+#save as tsv file
+
+write_delim(lfq_clean, "lfq.tsv", delim = "\t")
+
+write_delim(lfq_clean_long, "lfq_long.tsv", delim = "\t")
+
+```
+
+```{r}
+
+#get abundance of proteins for samples
+
+# Read in the sample data headings 
+sample_table <- read_tsv("sample_table.txt",col_names = FALSE)
+
+
+#replace the LFQ column names with sample data headings
+colnames(lfq_clean) <- c("group","Majority.protein.ID",sample_table$X2)
+
+#turn the data into presence absence. 1 if a protein is present in the sample, 0 if it is not
+prot_pa <- is.na(lfq_clean[-c(1,2)])*1
+
+#add the protein ids as rownames 
+rownames(prot_pa) <- lfq_clean$Majority.protein.ID
+
+#sum each column to find how many proteins are present in each sample
+prot_pa_sum <- colSums(prot_pa, na.rm = FALSE)
+
+
+#name them, bind them and put them in a dataframe
+names(prot_pa_sum)
+
+cbind(names(prot_pa_sum),prot_pa_sum)
+
+#define variables and place in dataframe
+
+sample=names(prot_pa_sum)
+
+tissue=stringr::str_match(sample,"([^_]*)")
+
+protein_presence=data.frame(sample=names(prot_pa_sum),sum=prot_pa_sum,stringsAsFactors = FALSE,tissue=stringr::str_match(sample,"([^_]*)")[,2])
+
+
+
+
+ggplot(protein_presence ,aes(x=tissue,y=sum)) + geom_point()
+
+ggplot(protein_presence %>% filter(tissue %in% c("Day1","Day20","Day30","Posterior")) ,aes(x=tissue,y=sum)) + geom_point() + labs(x= "Posterior Salivary Gland samples", y = "Number of proteins")
+```
+
+
+```{r}
+#same for adult tissues only
+
+prot_pa_ad_sum <- colSums(prot_pa[,7:21], na.rm = FALSE)
+
+cbind(names(prot_pa_ad_sum),prot_pa_ad_sum)
+
+ad_sum <- data.frame(sample=names(prot_pa_ad_sum),sum=prot_pa_ad_sum)
+
+tissue=stringr::str_match(ad_sum$sample,"([^_]*)")
+
+stringr::str_match(ad_sum$sample,"([^_]*)")[,2]
+
+adult_protein_count <- data.frame(sample=names(prot_pa_ad_sum),sum=prot_pa_ad_sum, tissue=stringr::str_match(ad_sum$sample,"([^_]*)")[,2])
+
+ggplot(adult_protein_count,aes(x=tissue,y=sum)) + geom_point() + labs(x= "Tissue samples", y = "Number of proteins")
+```
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).

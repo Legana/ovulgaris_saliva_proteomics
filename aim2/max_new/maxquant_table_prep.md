@@ -91,3 +91,9 @@ cat maxquant_short_out | awk '{printf("%s\t%s\n",$1,$10)}' | tail -n +3 > maxq_s
 ```bash
 bioawk -c fastx '{ print $name, length($seq) }' maxquant_fresh_as.fasta > maxq_seqlen.tsv
 ````
+
+#count cysteines for each sequence
+
+```bash
+bioawk -c fastx ' {print $name, (split($0,a,"C")-1) }' maxquant_fresh_as.fasta > cysteine_count.tsv
+```

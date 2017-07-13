@@ -42,15 +42,26 @@ uniprot_c_100$width <- c ("100")
 cysteine_range <- rbind(uniprot_c_def, uniprot_c_12, uniprot_c_50, uniprot_c_100) 
 ```
 
+```{r}
+
+#calculating density self
+
+cysteine_range_table <- as.data.frame(table(cysteine_range$max.cysteine_per_window,cysteine_range$width))
+
+colnames(cysteine_range_table) <- c("max.cysteine_per_window","width","count")
+
+cysteine_range_table$width <- factor(cysteine_range_table$width)
+
+
+ggplot(data = cysteine_range_table, aes(x = max.cysteine_per_window, y = count, color = width)) + geom_line(aes(group=width))
+```
+
 
 ```{r}
 
-library(ggplot2)
-
-
-ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
-
-ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_histogram(aes(color=width), binwidth = 2) + scale_x_continuous(breaks=scales::pretty_breaks(n=8))
+# ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
+# 
+# ggplot(data=cysteine_range, aes(x=max.cysteine_per_window)) + geom_histogram(aes(color=width), binwidth = 2) + scale_x_continuous(breaks=scales::pretty_breaks(n=8))
 
 ```
 
@@ -92,11 +103,24 @@ arachno_cyst_range <- rbind(arachno_c_def, arachno_c_12, arachno_c_50, arachno_c
 
 ```
 
+
 ```{r}
 
-library(ggplot2)
+#CALCULATE density and plot
 
-ggplot(data=arachno_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
+arachno_cysteine_range_table <- as.data.frame(table(arachno_cyst_range$max.cysteine_per_window,arachno_cyst_range$width))
+
+colnames(arachno_cysteine_range_table) <- c("max.cysteine_per_window","width","count")
+
+ggplot(data = arachno_cysteine_range_table, aes(x = max.cysteine_per_window, y = count, color = width)) + geom_line(aes(group=width))
+
+```
+
+```{r}
+
+# library(ggplot2)
+# 
+# ggplot(data=arachno_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width))
 ```
 
 
@@ -135,15 +159,56 @@ swisspr_c_100$width <- c ("100")
 swisspr_cyst_range <- rbind(swisspr_c_def, swisspr_c_12, swisspr_c_50, swisspr_c_100) 
 ```
 
+
 ```{r}
-library(ggplot2)
 
-ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0, 6)
+swisspr_cysteine_range_table <- as.data.frame(table(swisspr_cyst_range$max.cysteine_per_window,swisspr_cyst_range$width))
 
-ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_freqpoly(aes(color=width),binwidth=1) + xlim(0,8)
+colnames(swisspr_cysteine_range_table) <- c("max.cysteine_per_window","width","count")
+
 ```
 
+
 ```{r}
+
+# ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_density(aes(color=width)) + xlim(0, 6)
+# 
+# ggplot(data=swisspr_cyst_range, aes(x=max.cysteine_per_window)) + geom_freqpoly(aes(color=width),binwidth=1) + xlim(0,8)
+```
+
+
+```{r}
+
+# Combining arachnoserver. uniprot toxins and swissprot
+
+
+arachno_cysteine_range_table$db <- "arachnoserver"
+cysteine_range_table$db <-"uniprot toxins"
+swisspr_cysteine_range_table$db <- "swissprot"
+
+arachno_cysteine_range_table$density <- with(arachno_cysteine_range_table, count/nrow(arachno_cyst_range))
+
+cysteine_range_table$density <- with(cysteine_range_table, count/nrow(cysteine_range))
+swisspr_cysteine_range_table$density <- with(swisspr_cysteine_range_table, count/nrow(swisspr_cyst_range))
+
+all_cysteine_range_table <- rbind(arachno_cysteine_range_table, swisspr_cysteine_range_table, cysteine_range_table)
+
+all_cysteine_range_table$max.cysteine_per_window <- as.integer(all_cysteine_range_table$max.cysteine_per_window)
+
+#plot it 
+
+ggplot(data = all_cysteine_range_table, aes(x = max.cysteine_per_window, y = density, color = width)) + geom_line(aes(group=width)) + facet_wrap(~db,ncol=1) + xlim(0,20) + xlab("Maximum number of cysteines") + ylab("Probability density") + labs(colour= "Window size") + theme(strip.text.x = element_text(size=12))
+```
+
+
+
+#########################
+
+
+```{r}
+
+#TESTING 
+
 #testing cysteine peaks between window 12 and 30 
 
 library(tidyverse)

@@ -22,6 +22,10 @@ names(seq_length) <- c("ID", "Sequence_length")
 cysteine_max <- read_tsv("maxq_cyst.tsv", col_names = FALSE)
 names(cysteine_max) <- c("ID", "max.num_cysteines", "knot")
 
+cysteine_count <- read_tsv("cysteine_count.tsv", col_names = FALSE)
+names(cysteine_count) <- c("ID", "Cysteine_count")
+
+
 mwpi <- read_tsv("maxq_mwpi.tsv", col_names = FALSE)
 #convert molecular weight from DA to kDA
 mwpi[,2] <- mwpi[,2]/1000
@@ -37,7 +41,20 @@ names(mwpi) <- c("ID", "Molecular_weight (kDA)","Isoelectric_point")
 
 #join characteristics
 
-characteristics <- left_join(seq_length, signalp, by = "ID") %>% left_join(cysteine_max, by = "ID") %>% left_join(mwpi, by = "ID")
+characteristics <- left_join(seq_length, signalp, by = "ID") %>% left_join(cysteine_count, by = "ID") %>% left_join(cysteine_max, by = "ID") %>% left_join(mwpi, by = "ID")
+
+#add cysteine richness column to characteristics
+
+characteristics$cysteine_richness <- (characteristics$Cysteine_count/characteristics$Sequence_length) * 100
+
+#decrease sig figures
+characteristics$cysteine_richness <- round(characteristics$cysteine_richness, digits =2)
+
+#move column next to cysteine_count
+
+colnames(characteristics)
+
+characteristics <- characteristics[, c(1,2,3,4,9,5,6,7,8)]
 ```
 
 ```{r}
@@ -92,7 +109,64 @@ chars_blast_lfq <- left_join(chars_and_blast, LFQ, by = "ID")
 ```
 
 ```{r}
-write_delim(chars_blast_lfq,"maxquant_fresh_protein_table.tsv",delim = "\t")
+#write_delim(chars_blast_lfq,"maxquant_fresh_protein_table.tsv",delim = "\t")
+```
+
+
+```{r}
+#refining the table to obtain a smaller subset with likely toxin candidates
+
+#select the Y from the SignalP column 
+
+signals_only <- filter(chars_blast_lfq, SignalP == "Y")
+
+#now select rows from the signals_only dataframe that are equal or greater than 5 in cysteine density
+
+high_cysteines <- filter(signals_only, max.num_cysteines >= 5)
+
+#find proteins shorter than 150aa
+
+short <- filter(high_cysteines, Sequence_length <=150)
+
+#select cysteine rich proteins
+
+sig_and_cysteine_rich <- filter(signals_only, cysteine_richness >=3)
+
+
+
+```
+
+```{r}
+#extracting those which blasted to uniprot toxins and/or arachnoserver
+
+arachno_hits <- chars_blast_lfq %>% filter(!is.na(Hit_ID.arachnoserver))
+
+uniprott_hits <- chars_blast_lfq %>% filter(!is.na(Hit_ID.uniprot_toxins))
+
+#sigp only
+
+arachno_hits_sigp <- filter(arachno_hits, SignalP == "Y")
+
+uniprott_hits_sigp <- filter(uniprott_hits, SignalP == "Y")
+
+
+
+```
+
+```{r}
+
+#save putative toxins dfs (to then compile the ids in bash and only keep unique ones)
+
+write_delim(arachno_hits_sigp,"putt_arachno.tsv",delim = "\t")
+
+write_delim(uniprott_hits_sigp,"putt_uniprott.tsv",delim = "\t")
+
+write_delim(sig_and_cysteine_rich,"putt_cysteine_rich.tsv",delim = "\t")
+
+write_delim(short,"putt_short.tsv",delim = "\t")
+
+
+
 ```
 
 ```{r}
@@ -142,23 +216,7 @@ fisher.test(SignalKnot)
 ```
 
 
-```{r}
-#refining the table to obtain a smaller subset with likely toxin candidates
 
-#select the Y from the SignalP column 
-
-signals_only <- filter(chars_blast_lfq, SignalP == "Y")
-
-#now select rows from the signals_only dataframe that are equal or greater than 5 in cysteine density
-
-high_cysteines <- filter(signals_only, max.num_cysteines >= 5)
-
-#find proteins shorter than 150aa
-
-short <- filter(high_cysteines, Sequence_length <=150)
-
-
-```
 
 
 

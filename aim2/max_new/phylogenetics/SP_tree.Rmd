@@ -43,9 +43,19 @@ species_group <- meta_data$Species
 
 
 ```{r}
+library(ggrepel)
+
 sp_tree2 <- read.tree("SP_uncut_alignment.fasta.contree")
 
-ggtree(sp_tree2) + geom_tiplab()
+#add bootstrap values
+
+ggtree(sp_tree2) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label))
+
+##colour branches by species name but get Error: Aesthetics must be either length 1 or the same as the data (236): node, parent, x, y, colour
+
+ggtree(sp_tree2, aes(color=(meta_data$Species))) %<+% meta_data + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label))
+
+## want to try to repel bootstrap values to make it more clearer but this didnt work: + geom_label_repel(aes(label=bootstrap, fill=bootstrap))
 
 sp_tree2$tip.label <- meta_data$Sequence_ID
 ```

@@ -1,0 +1,52 @@
+---
+title: "phylogenetics"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r read_files}
+
+library(tidyverse)
+
+meta_data <- read_tsv("SP_tree_names.tsv", col_names = TRUE)
+names(meta_data) <- c("Sequence", "Sequence_ID", "Species")
+
+
+library(ape)
+
+#install ggtree
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("ggtree")
+
+library(ggtree)
+sp_tree <- read.tree("SP_cut_alignment.fasta.contree")
+
+ggtree(sp_tree) + geom_tiplab()
+
+sp_tree$tip.label <- meta_data$Sequence_ID
+
+species_group <- meta_data$Species
+
+#CMD SHIFT C
+
+# sp_tree$tip.label <- meta_data$Species
+# 
+# sp_tree <- root(sp_tree, outgroup = "Drosophila melanogaster")
+# 
+# sp_tree <- root(sp_tree, outgroup = c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"))
+
+```
+
+
+```{r}
+sp_tree2 <- read.tree("SP_uncut_alignment.fasta.contree")
+
+ggtree(sp_tree2) + geom_tiplab()
+
+sp_tree2$tip.label <- meta_data$Sequence_ID
+```
+

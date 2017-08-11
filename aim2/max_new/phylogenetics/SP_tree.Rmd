@@ -15,13 +15,14 @@ library(tidyverse)
 meta_data <- read_tsv("SP_tree_names.tsv", col_names = TRUE)
 names(meta_data) <- c("Sequence", "Sequence_ID", "Species")
 
-
+library(phangorn) 
 library(ape)
 
 #install ggtree
 #source("https://bioconductor.org/biocLite.R")
 #biocLite("ggtree")
 
+library(ggplot2)
 library(ggtree)
 sp_tree <- read.tree("SP_cut_alignment.fasta.contree")
 
@@ -39,23 +40,40 @@ species_group <- meta_data$Species
 # 
 # sp_tree <- root(sp_tree, outgroup = c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"))
 
+clds <- list("Drosophila melanogaster"=c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"),"Crassostrea gigas"=c("Cg_K1P7U9_CRAGI","Cg_K1PI76_CRAGI", "Cg_K1PJU5_CRAGI", "Cg_K1PNU1_CRAGI", "Cg_K1PP23_CRAGI", "Cg_K1PPY8_CRAGI","Cg_K1Q4B9_CRAGI", "Cg_K1QAG3_CRAGI", "Cg_K1QBQ5_CRAGI","Cg_K1QC15_CRAGI", "Cg_K1QC16_CRAGI", "Cg_K1QHC5_CRAGI", "Cg_K1QJT5_CRAGI", "Cg_K1QM96_CRAGI", "Cg_K1QNB3_CRAGI", "Cg_K1QP52_CRAGI", "Cg_K1QPS0_CRAGI", "Cg_K1QQC8_CRAGI", "Cg_K1QRJ5_CRAGI", "Cg_K1R1B2_CRAGI", "Cg_K1R8F0_CRAGI", "Cg_K1R022_CRAGI", "Cg_K1RBP5_CRAGI", "Cg_K1RBS2_CRAGI", "Cg_K1RE92_CRAGI", "Cg_K1RHE9_CRAGI"),"Octopus vulgaris"=c("Ov_40","Ov_39","Ov_38","Ov_37","Ov_36","Ov_35","Ov_34","Ov_33","Ov_32","Ov_31","Ov_30","Ov_29","Ov_28","Ov_27","Ov_26","Ov_25","Ov_24","Ov_23","Ov_22","Ov_21","Ov_20","Ov_19","Ov_18","Ov_17","Ov_16","Ov_15","Ov_14", "Ov_13","Ov_12","Ov_11","Ov_10","Ov_9","Ov_8","Ov_7","Ov_6","Ov_5","Ov_4","Ov_3","Ov_2","Ov_1"),"Octopus kaurna"=c("Ok_16","Ok_15","Ok_14","Ok_13","Ok_12","Ok_11","Ok_10","Ok_9","Ok_8","Ok_7","Ok_6","Ok_5","Ok_4", "Ok_3","Ok_2","Ok_1"),"Hapalochlaena maculosa"=c("Hm_13","Hm_12","Hm_11","Hm_10","Hm_9","Hm_8","Hm_7","Hm_6","Hm_5","Hm_4","Hm_3","Hm_2","Hm_1"))
+
+
+sp_tree <- groupOTU(sp_tree, clds)
+
+ggtree(sp_tree, aes(color=group, linetype=group)) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = 1) + theme(legend.position=c(0.8,0.2), legend.text = element_text(face = "italic"))
+                                                                                                                                               
+                                                                                                                          #guides(fill=guide_legend(title="Species"))
+
 ```
 
 
 ```{r}
-library(ggrepel)
+#library(ggrepel)
 
 sp_tree2 <- read.tree("SP_uncut_alignment.fasta.contree")
 
+sp_tree2 = midpoint(sp_tree2)
+
+sp_tree2 <- groupOTU(sp_tree2, clds)
+
 #add bootstrap values
 
-ggtree(sp_tree2) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label))
+ggtree(sp_tree2) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3)
+
+
+
+ggtree(sp_tree2, aes(color=group, linetype=group)) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = -2) + theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"))
 
 ##colour branches by species name but get Error: Aesthetics must be either length 1 or the same as the data (236): node, parent, x, y, colour
 
 ggtree(sp_tree2, aes(color=(meta_data$Species))) %<+% meta_data + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label))
 
-## want to try to repel bootstrap values to make it more clearer but this didnt work: + geom_label_repel(aes(label=bootstrap, fill=bootstrap))
+## want to try to repel bootstrap values to make it more clearer but this didnt work: + geom_label_repel(aes(label=bootstrap, fill=bootstrap))  
 
 sp_tree2$tip.label <- meta_data$Sequence_ID
 ```

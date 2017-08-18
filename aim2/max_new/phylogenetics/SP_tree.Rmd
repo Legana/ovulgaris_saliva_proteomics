@@ -24,57 +24,109 @@ library(ape)
 
 library(ggplot2)
 library(ggtree)
+
+
+```
+
+```{r}
+meta_data2 <- read_tsv("meta_data2.tsv", col_names = TRUE)
+names(meta_data2) <- c("Sequence", "Sequence_ID", "Species")
+
+
+clds2 <- list("Drosophila melanogaster"=c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"),"Crassostrea gigas"=c("Cg_K1P7U9_CRAGI","Cg_K1PI76_CRAGI", "Cg_K1PJU5_CRAGI", "Cg_K1PNU1_CRAGI", "Cg_K1PP23_CRAGI", "Cg_K1PPY8_CRAGI","Cg_K1Q4B9_CRAGI", "Cg_K1QAG3_CRAGI", "Cg_K1QBQ5_CRAGI","Cg_K1QC15_CRAGI", "Cg_K1QC16_CRAGI", "Cg_K1QHC5_CRAGI", "Cg_K1QJT5_CRAGI", "Cg_K1QM96_CRAGI", "Cg_K1QNB3_CRAGI", "Cg_K1QP52_CRAGI", "Cg_K1QPS0_CRAGI", "Cg_K1QQC8_CRAGI", "Cg_K1QRJ5_CRAGI", "Cg_K1R1B2_CRAGI", "Cg_K1R8F0_CRAGI", "Cg_K1R022_CRAGI", "Cg_K1RBP5_CRAGI", "Cg_K1RBS2_CRAGI", "Cg_K1RE92_CRAGI", "Cg_K1RHE9_CRAGI"),"Octopus vulgaris"=c("Ov_40","Ov_39","Ov_38","Ov_37","Ov_36","Ov_35","Ov_34","Ov_33","Ov_32","Ov_31","Ov_30","Ov_29","Ov_28","Ov_27","Ov_26","Ov_25","Ov_24","Ov_23","Ov_22","Ov_21","Ov_20","Ov_19","Ov_18","Ov_17","Ov_16","Ov_15","Ov_14", "Ov_13","Ov_12","Ov_11","Ov_10","Ov_9","Ov_8","Ov_7","Ov_6","Ov_5","Ov_4","Ov_3","Ov_2","Ov_1"),"Octopus kaurna"=c("Ok_16","Ok_15","Ok_14","Ok_13","Ok_12","Ok_11","Ok_10","Ok_9","Ok_8","Ok_7","Ok_6","Ok_5","Ok_4", "Ok_3","Ok_2","Ok_1"),"Hapalochlaena maculosa"=c("Hm_13","Hm_12","Hm_11","Hm_10","Hm_9","Hm_8","Hm_7","Hm_6","Hm_5","Hm_4","Hm_3","Hm_2","Hm_1"), "Octopus bimaculoides"=c("Ob_A0A0L8IDJ3","Ob_A0A0L8ICK7","Ob_A0A0L8I4E8","Ob_A0A0L8I3P7","Ob_A0A0L8I3L3","Ob_A0A0L8HY03", "Ob_A0A0L8HXZ0", "Ob_A0A0L8HXV2","Ob_A0A0L8HV73","Ob_A0A0L8HU59","Ob_A0A0L8HU11","Ob_A0A0L8HTZ2","Ob_A0A0L8HT00","Ob_A0A0L8HS18","Ob_A0A0L8HQA3","Ob_A0A0L8HKP4","Ob_A0A0L8HIV6","Ob_A0A0L8HH16","Ob_A0A0L8HGN2","Ob_A0A0L8HFZ5","Ob_A0A0L8HFQ7","Ob_A0A0L8H265","Ob_A0A0L8H132","Ob_A0A0L8H5R3","Ob_A0A0L8H2M4","Ob_A0A0L8GTK7","Ob_A0A0L8GQL9","Ob_A0A0L8GGQ7","Ob_A0A0L8GGI1","Ob_A0A0L8GEQ0","Ob_A0A0L8GD02","Ob_A0A0L8GCZ5","Ob_A0A0L8GBA1","Ob_A0A0L8G649","Ob_A0A0L8G9A7","Ob_A0A0L8G1X5","Ob_A0A0L8FTB5","Ob_A0A0L8FR46","Ob_A0A0L8FL98"))
+
+sp_tree3 <- read.tree("SP2_cut_alignment.fasta.contree")
+
+sp_tree3$tip.label <- meta_data2$Sequence_ID
+
+#sp_tree3 <- midpoint(sp_tree3)
+
+sp_tree3 <- groupOTU(sp_tree3, clds2)
+
+attr(sp_tree3,'group') <-  factor(attr(sp_tree3,'group'),levels=rev(levels(attr(sp_tree3,'group'))))
+
+ggtree(sp_tree3, layout="unrooted", aes(color=group, linetype=group)) + geom_tiplab(size=2) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + scale_color_manual(values = clrs)
+
+
+
+ #to see the node numbers (useful for rooting by nodes)
+#ggtree(sp_tree3) + geom_text2(aes(subset=!isTip, label=node), hjust=-.3) + geom_tiplab()
+#sp_tree3 <- root(sp_tree3,node=196)
+#sp_tree3 <- midpoint(sp_tree3, node.labels = "support")
+
+
+#ggtree(sp_tree3, aes(color=group, linetype=group)) + geom_tiplab(size=3) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + theme(legend.position=c(0.2,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + ggplot2::xlim(-2, 5) + scale_color_manual(values = clrs)
+
+ ggsave("sp_tree3.png", width = 210, height = 297, units = "mm")
+```
+
+```{r}
+#read the tree
 sp_tree <- read.tree("SP_cut_alignment.fasta.contree")
 
-ggtree(sp_tree) + geom_tiplab()
-
+#assign the tip labels to use the Sequence_ID column from the meta_data file
 sp_tree$tip.label <- meta_data$Sequence_ID
 
-species_group <- meta_data$Species
-
-#CMD SHIFT C
-
-# sp_tree$tip.label <- meta_data$Species
-# 
-# sp_tree <- root(sp_tree, outgroup = "Drosophila melanogaster")
-# 
-# sp_tree <- root(sp_tree, outgroup = c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"))
+#make a list of the corresponding tip labels to the species so it can be used to colour the tree branches by species
 
 clds <- list("Drosophila melanogaster"=c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"),"Crassostrea gigas"=c("Cg_K1P7U9_CRAGI","Cg_K1PI76_CRAGI", "Cg_K1PJU5_CRAGI", "Cg_K1PNU1_CRAGI", "Cg_K1PP23_CRAGI", "Cg_K1PPY8_CRAGI","Cg_K1Q4B9_CRAGI", "Cg_K1QAG3_CRAGI", "Cg_K1QBQ5_CRAGI","Cg_K1QC15_CRAGI", "Cg_K1QC16_CRAGI", "Cg_K1QHC5_CRAGI", "Cg_K1QJT5_CRAGI", "Cg_K1QM96_CRAGI", "Cg_K1QNB3_CRAGI", "Cg_K1QP52_CRAGI", "Cg_K1QPS0_CRAGI", "Cg_K1QQC8_CRAGI", "Cg_K1QRJ5_CRAGI", "Cg_K1R1B2_CRAGI", "Cg_K1R8F0_CRAGI", "Cg_K1R022_CRAGI", "Cg_K1RBP5_CRAGI", "Cg_K1RBS2_CRAGI", "Cg_K1RE92_CRAGI", "Cg_K1RHE9_CRAGI"),"Octopus vulgaris"=c("Ov_40","Ov_39","Ov_38","Ov_37","Ov_36","Ov_35","Ov_34","Ov_33","Ov_32","Ov_31","Ov_30","Ov_29","Ov_28","Ov_27","Ov_26","Ov_25","Ov_24","Ov_23","Ov_22","Ov_21","Ov_20","Ov_19","Ov_18","Ov_17","Ov_16","Ov_15","Ov_14", "Ov_13","Ov_12","Ov_11","Ov_10","Ov_9","Ov_8","Ov_7","Ov_6","Ov_5","Ov_4","Ov_3","Ov_2","Ov_1"),"Octopus kaurna"=c("Ok_16","Ok_15","Ok_14","Ok_13","Ok_12","Ok_11","Ok_10","Ok_9","Ok_8","Ok_7","Ok_6","Ok_5","Ok_4", "Ok_3","Ok_2","Ok_1"),"Hapalochlaena maculosa"=c("Hm_13","Hm_12","Hm_11","Hm_10","Hm_9","Hm_8","Hm_7","Hm_6","Hm_5","Hm_4","Hm_3","Hm_2","Hm_1"))
 
+#assign the list to the tree
 
+
+#to see the node numbers (useful for rooting by nodes)
+#ggtree(sp_tree) + geom_text2(aes(subset=!isTip, label=node), hjust=-.3) + geom_tiplab()
+
+library(ape)
+#sp_tree <- root(sp_tree,node=185)
+#sp_tree <- root(sp_tree,outgroup = "Dm_SER7_DROME")
+#sp_tree <- root(sp_tree,outgroup = "Dm_STUB_DROME")
+#sp_tree <- midpoint(sp_tree)
 sp_tree <- groupOTU(sp_tree, clds)
 
-ggtree(sp_tree, aes(color=group, linetype=group)) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = 1) + theme(legend.position=c(0.8,0.2), legend.text = element_text(face = "italic"))
-                                                                                                                                               
-                                                                                                                          #guides(fill=guide_legend(title="Species"))
+
+#change the original attribute levels of the species names to reverse them for the legend
+
+attr(sp_tree,'group') <-  factor(attr(sp_tree,'group'),levels=rev(levels(attr(sp_tree,'group'))))
+
+#construct the tree colouring in by species, depicting bootstrap values (node support) with slight adjustments to the size and position to make the tree clearer, add a scale for the tree, add the legend and alter its position, italicise the legend and remove the legend title
+
+#ggtree(sp_tree, aes(color=group, linetype=group)) + geom_tiplab(size=3) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = 1) + theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + ggplot2::xlim(-1, 4) + scale_color_manual(values = clrs)
+
+
+ggtree(sp_tree, layout="unrooted", aes(color=group, linetype=group)) + geom_tiplab(size=3) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale() + theme(legend.position=c(0.2,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + ggplot2::xlim(1, 3) + scale_color_manual(values = clrs)
+
+#+ geom_text_repel(aes(label=meta_data$Sequence_ID))
+
+clrs <- c("Octopus vulgaris" = "purple", "Octopus kaurna" = "darkgreen", "Hapalochlaena maculosa" = "blue", "Octopus bimaculoides" = "red", "Drosophila melanogaster" = "Chocolate3", "Crassostrea gigas" = "Coral")
+
+              
+                                                                                                                          ggsave("sp_tree.png", width = 210, height = 297, units = "mm")
+                                                                                                                          
+                                                                                                                          library(ggrepel)
+                                                                                                                          ?ggrepel
+                                                                                                                        
 
 ```
 
 
-```{r}
-#library(ggrepel)
 
+```{r}
 sp_tree2 <- read.tree("SP_uncut_alignment.fasta.contree")
 
-sp_tree2 = midpoint(sp_tree2)
+sp_tree2$tip.label <- meta_data$Sequence_ID
+
+clds <- list("Drosophila melanogaster"=c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TRYDT_DROME","Dm_TRYGT_DROME","Dm_Y0031_DROME","Dm_SER1_DROME","Dm_SER2_DROME","Dm_GD_DROME","Dm_TRYA_DROME","Dm_SNAK_DROME","Dm_EAST_DROME","Dm_SER3_DROME","Dm_TRYB_DROME","Dm_TRYE_DROME","Dm_TRYT_DROME","Dm_TRYU_DROME","Dm_TRYZ_DROME","Dm_TRYI_DROME","Dm_NUDEL_DROME","Dm_SER7_DROME","Dm_MODSP_DROME","Dm_SEMS_DROME","Dm_PSH_DROME","Dm_STUB_DROME"),"Crassostrea gigas"=c("Cg_K1P7U9_CRAGI","Cg_K1PI76_CRAGI", "Cg_K1PJU5_CRAGI", "Cg_K1PNU1_CRAGI", "Cg_K1PP23_CRAGI", "Cg_K1PPY8_CRAGI","Cg_K1Q4B9_CRAGI", "Cg_K1QAG3_CRAGI", "Cg_K1QBQ5_CRAGI","Cg_K1QC15_CRAGI", "Cg_K1QC16_CRAGI", "Cg_K1QHC5_CRAGI", "Cg_K1QJT5_CRAGI", "Cg_K1QM96_CRAGI", "Cg_K1QNB3_CRAGI", "Cg_K1QP52_CRAGI", "Cg_K1QPS0_CRAGI", "Cg_K1QQC8_CRAGI", "Cg_K1QRJ5_CRAGI", "Cg_K1R1B2_CRAGI", "Cg_K1R8F0_CRAGI", "Cg_K1R022_CRAGI", "Cg_K1RBP5_CRAGI", "Cg_K1RBS2_CRAGI", "Cg_K1RE92_CRAGI", "Cg_K1RHE9_CRAGI"),"Octopus vulgaris"=c("Ov_40","Ov_39","Ov_38","Ov_37","Ov_36","Ov_35","Ov_34","Ov_33","Ov_32","Ov_31","Ov_30","Ov_29","Ov_28","Ov_27","Ov_26","Ov_25","Ov_24","Ov_23","Ov_22","Ov_21","Ov_20","Ov_19","Ov_18","Ov_17","Ov_16","Ov_15","Ov_14", "Ov_13","Ov_12","Ov_11","Ov_10","Ov_9","Ov_8","Ov_7","Ov_6","Ov_5","Ov_4","Ov_3","Ov_2","Ov_1"),"Octopus kaurna"=c("Ok_16","Ok_15","Ok_14","Ok_13","Ok_12","Ok_11","Ok_10","Ok_9","Ok_8","Ok_7","Ok_6","Ok_5","Ok_4", "Ok_3","Ok_2","Ok_1"),"Hapalochlaena maculosa"=c("Hm_13","Hm_12","Hm_11","Hm_10","Hm_9","Hm_8","Hm_7","Hm_6","Hm_5","Hm_4","Hm_3","Hm_2","Hm_1"))
+
 
 sp_tree2 <- groupOTU(sp_tree2, clds)
 
-#add bootstrap values
+attr(sp_tree2,'group') <-  factor(attr(sp_tree2,'group'),levels=rev(levels(attr(sp_tree2,'group'))))
 
-ggtree(sp_tree2) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3)
+ggtree(sp_tree2, aes(color=group, linetype=group)) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = 1) + theme(legend.position=c(0.8,0.2), legend.text = element_text(face = "italic"), legend.title = element_blank()) 
+                                                
 
 
 
-ggtree(sp_tree2, aes(color=group, linetype=group)) + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=3) + geom_treescale(offset = -2) + theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"))
-
-##colour branches by species name but get Error: Aesthetics must be either length 1 or the same as the data (236): node, parent, x, y, colour
-
-ggtree(sp_tree2, aes(color=(meta_data$Species))) %<+% meta_data + geom_tiplab() + geom_text2(aes(subset = !isTip, label=label))
-
-## want to try to repel bootstrap values to make it more clearer but this didnt work: + geom_label_repel(aes(label=bootstrap, fill=bootstrap))  
-
-sp_tree2$tip.label <- meta_data$Sequence_ID
 ```
 

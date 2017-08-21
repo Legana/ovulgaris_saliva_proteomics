@@ -37,7 +37,15 @@ clds2 <- list("Drosophila melanogaster"=c("Dm_MP1_DROME","Dm_HAYAN_DROME","Dm_TR
 
 sp_tree3 <- read.tree("SP2_cut_alignment.fasta.contree")
 
-sp_tree3$tip.label <- meta_data2$Sequence_ID
+meta_data2_reformatted <- meta_data2$Sequence %>% stringr::str_replace_all(c(":"="_","\\|"="_")) 
+
+tip_label_order <- match(sp_tree3$tip.label,meta_data2_reformatted)
+# Check tip_label_order
+if ( ! identical(meta_data2_reformatted[tip_label_order],sp_tree3$tip.label) ){
+  cat("Error tip label order not correct")
+}
+
+sp_tree3$tip.label <- meta_data2$Sequence_ID[tip_label_order]
 
 #sp_tree3 <- midpoint(sp_tree3)
 
@@ -45,19 +53,19 @@ sp_tree3 <- groupOTU(sp_tree3, clds2)
 
 attr(sp_tree3,'group') <-  factor(attr(sp_tree3,'group'),levels=rev(levels(attr(sp_tree3,'group'))))
 
-ggtree(sp_tree3, layout="unrooted", aes(color=group, linetype=group)) + geom_tiplab(size=2) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + scale_color_manual(values = clrs)
+#ggtree(sp_tree3, layout="unrooted", aes(color=group, linetype=group)) + geom_tiplab(size=2) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + scale_color_manual(values = clrs)
 
 
 
  #to see the node numbers (useful for rooting by nodes)
 #ggtree(sp_tree3) + geom_text2(aes(subset=!isTip, label=node), hjust=-.3) + geom_tiplab()
 #sp_tree3 <- root(sp_tree3,node=196)
-#sp_tree3 <- midpoint(sp_tree3, node.labels = "support")
 
 
-#ggtree(sp_tree3, aes(color=group, linetype=group)) + geom_tiplab(size=3) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + theme(legend.position=c(0.2,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + ggplot2::xlim(-2, 5) + scale_color_manual(values = clrs)
 
- ggsave("sp_tree3.png", width = 210, height = 297, units = "mm")
+ggtree(sp_tree3, aes(color=group, linetype=group)) + geom_tiplab(size=3) + geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + geom_treescale(offset = 1) + theme(legend.position=c(0.2,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + ggplot2::xlim(-2, 5) + scale_color_manual(values = clrs)
+
+ #ggsave("sp_tree3.png", width = 210, height = 297, units = "mm")
 ```
 
 ```{r}

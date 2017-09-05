@@ -1,0 +1,94 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r}
+library(tidyverse)
+library(ComplexHeatmap)
+library(grid)
+
+#read in data
+full_maxquant_table <- read_tsv("maxquant_fresh_protein_table.tsv", col_names = TRUE)
+
+SP_ids <- read_tsv("SP_ids.tsv", col_names = TRUE)
+names(SP_ids) <- c("ID")
+
+#extract SP from full maxquant table
+SP <- full_maxquant_table %>% filter(ID %in% SP_ids$ID)
+
+#extract PSG columns for adults and juveniles
+SP_psg <- SP[c(1,23:28,32:34,38:40)]
+
+#change the LFQ values to present (1) or absent (0) and remove the first column
+SP_psg_pa <- is.na(SP_psg[-c(1)])*1
+#add in the rownames with IDs 
+rownames(SP_psg_pa) <- SP_psg$ID
+
+#create a heatmap of the present absent data in the PSG for adults and juveniles
+Heatmap(SP_psg_pa, show_row_names = FALSE)
+
+Heatmap(SP_psg_pa)
+
+#including the saliva
+SP_psg_sal <- SP[c(1,23:28,32:34,38:43)]
+SP_psg_sal_pa <- is.na(SP_psg_sal[-c(1)])*1
+rownames(SP_psg_sal_pa) <- SP_psg_sal$ID
+
+Heatmap(SP_psg_sal_pa, show_row_names = FALSE)
+```
+
+```{r}
+
+#same for proteins which contain known toxin domains 
+
+library(tidyverse)
+library(ComplexHeatmap)
+library(grid)
+
+#read in data
+full_maxquant_table <- read_tsv("maxquant_fresh_protein_table.tsv", col_names = TRUE)
+
+TD_ids <- read_tsv("toxin_domains.tsv", col_names = TRUE)
+names(TD_ids) <- c("ID", "Family")
+
+#extract TD from full maxquant table
+TD <- full_maxquant_table %>% filter(ID %in% TD_ids$ID)
+
+#extract PSG columns for adults and juveniles
+TD_psg <- TD[c(1,23:28,32:34,38:40)]
+
+#change the LFQ values to present (1) or absent (0) and remove the first column
+TD_psg_pa <- is.na(TD_psg[-c(1)])*1
+#add in the rownames with IDs 
+rownames(TD_psg_pa) <- TD_psg$ID
+
+#create a heatmap of the present absent data in the PSG for adults and juveniles
+Heatmap(TD_psg_pa, show_row_names = FALSE)
+
+Heatmap(TD_psg_pa)
+
+#including the saliva
+TD_psg_sal <- TD[c(1,23:28,32:34,38:43)]
+TD_psg_sal_pa <- is.na(TD_psg_sal[-c(1)])*1
+rownames(TD_psg_sal_pa) <- TD_psg_sal$ID
+
+Heatmap(TD_psg_sal_pa, show_row_names = FALSE)
+
+TD_psg_sal_pa_hm <- Heatmap(TD_psg_sal_pa, show_row_names = FALSE)
+
+TD_hm_annotations <- HeatmapAnnotation(TD_ids$Family, which = c("row"))
+
+
+
+draw(TD_psg_sal_pa_hm + TD_hm_annotations)
+
+
+```
+
+

@@ -3,6 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
@@ -132,9 +133,71 @@ short <- filter(high_cysteines, Sequence_length <=150)
 
 sig_and_cysteine_rich <- filter(signals_only, cysteine_richness >=3)
 
+```
+
+```{r}
+#make short protein table that are cysteine rich or have a knot
+
+short_knot <- filter(high_cysteines, Sequence_length <=150)
+
+short_rich <- filter(sig_and_cysteine_rich, Sequence_length <=150)
+
+short_combined <- rbind(short_knot,short_rich) %>% unique()
+
+write_delim(short_combined,"short_knot_or_crich.tsv",delim = "\t")
+
+#just the IDS so they can be used to extract the FASTA sequences
+
+short_combined_IDS <- as.data.frame(short_combined$ID, header=FALSE)
+
+write_delim(short_combined_IDS,"short_knot_or_crich_IDs.tsv")
+
+#after annotation in Geneious import back and merge
+
+short_combined_annot <- read_tsv("32 documents from short_knot_or_crich Sequences.tsv", col_names = TRUE)
+names(short_combined_annot)[1] <-c("ID")
+
+short_combined_all <- left_join(short_combined, short_combined_annot, by = "ID")
+
+#use selected columns to make a table consisting of short toxin candidates
+
+short_toxin_table <- short_combined_all[c(1:6,22,44:57)]
+
+write_delim(short_toxin_table,"short_toxin_table.tsv", delim = "\t")
+
 
 
 ```
+
+```{r}
+
+toxin_domains_annot <- read_tsv("26 documents from Toxin_domains.tsv", col_names = TRUE)
+names(toxin_domains_annot)[1] <-c("ID")
+
+#extract toxin domain proteins from full maxquant table
+TD <- chars_blast_lfq %>% filter(ID %in% toxin_domains_annot$ID)
+
+td_domains_combined <- left_join(TD, toxin_domains_annot, by = "ID")
+
+td_table <- td_domains_combined[c(1:6,22,44:49,51:56)]
+
+write_delim(td_table, "td_table.tsv", delim = "\t")
+  
+
+sp_domains_annot <- read_tsv("43 documents from serine protease.tsv", col_names = TRUE)
+names(sp_domains_annot)[1] <-c("ID")
+
+#extract SP from full maxquant table
+SP <- chars_blast_lfq %>% filter(ID %in% sp_domains_annot$ID)
+
+sp_domains_combined <- left_join(SP, sp_domains_annot, by = "ID")
+
+sp_table <- sp_domains_combined[c(1:6,22,44:48,50:55)]
+
+write_delim(sp_table, "sp_table.tsv", delim = "\t")
+
+```
+
 
 ```{r}
 #extracting those which blasted to uniprot toxins and/or arachnoserver

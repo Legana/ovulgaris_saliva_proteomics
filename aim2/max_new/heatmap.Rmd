@@ -41,6 +41,19 @@ SP_psg_sal_pa <- is.na(SP_psg_sal[-c(1)])*1
 rownames(SP_psg_sal_pa) <- SP_psg_sal$ID
 
 Heatmap(SP_psg_sal_pa, show_row_names = FALSE)
+
+#heatmap for numerical values 
+#transform data to matrix
+
+SP_psg_matrix <-log2(data.matrix(SP_psg[-c(1)]))
+rownames(SP_psg_matrix) <- SP_psg$ID
+
+
+SP_psg_matrix[is.na(SP_psg_matrix)] <- 0
+
+Heatmap(SP_psg_matrix)
+
+
 ```
 
 ```{r}
@@ -78,13 +91,16 @@ TD_psg_sal <- TD[c(1,23:28,32:34,38:43)]
 TD_psg_sal_pa <- is.na(TD_psg_sal[-c(1)])*1
 rownames(TD_psg_sal_pa) <- TD_psg_sal$ID
 
-Heatmap(TD_psg_sal_pa, show_row_names = FALSE)
+Heatmap(TD_psg_sal_pa)
 
-TD_psg_sal_pa_hm <- Heatmap(TD_psg_sal_pa, show_row_names = FALSE)
+#add annotations
 
-TD_hm_annotations <- HeatmapAnnotation(TD_ids$Family, which = c("row"))
+TD_psg_sal_pa_hm <- Heatmap(TD_psg_sal_pa, show_row_names = TRUE)
 
 
+family_df <- data.frame(Family = TD_ids$Family[match(rownames(TD_psg_sal_pa),TD_ids$ID)])
+
+TD_hm_annotations <- HeatmapAnnotation(df = family_df, which = 'row')
 
 draw(TD_psg_sal_pa_hm + TD_hm_annotations)
 

@@ -27,13 +27,19 @@ meta_data3 <- read_tsv("meta_data3.tsv", col_names = TRUE)
 names(meta_data3) <- c("Sequence", "Sequence_ID", "Notes", "Species")
 
 #read in the tree
-sp_tree4 <- read.tree("SP_tree4.fasta.contree")
+#sp_tree4 <- read.tree("SP_tree4.fasta.contree")
+sp_tree4 <- read.tree("SP_tree4.fasta.boottrees.contree.nwk")[[1]]
+
+
+ggtree(sp_tree4) + geom_tiplab()
 
 #replace the : with - and the | with _ in the sequence names in meta data to match it to the tree tip labels/sequence names (which were altered along the way - perhaps in iqtree)
 meta_data3_reformatted <- meta_data3$Sequence %>% stringr::str_replace_all(c(":"="_","\\|"="_")) 
 
+sp_tree4$tip.label <- sp_tree4$tip.label %>% str_replace_all("'","")
+
 #match the tip labels with the freshly formatted sequence names
-tip_label_order2 <- match(sp_tree4$tip.label,meta_data3_reformatted)
+tip_label_order2 <- match(sp_tree4$tip.label   ,meta_data3_reformatted)
 
 # Check tip_label_order
 if ( ! identical(meta_data3_reformatted[tip_label_order2],sp_tree4$tip.label) ){
@@ -74,23 +80,145 @@ nodes_tree <- ggtree(sp_tree4, aes(color=group, linetype=group)) +
   geom_treescale(offset = 1) + 
   theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
   xlim(-1,5) 
-ggsave(nodes_tree, filename = "sp_tree4_nodes.png", width = 210, height = 297, units = "mm")
-
-
-
-
-#construct the tree colouring in by species, depicting bootstrap values (node support) with slight adjustments to the size and position to make the tree clearer, add a scale for the tree, add the legend and alter its position, italicise the legend and remove the legend title
-tree_graphic <- ggtree(sp_tree4, aes(color=group, linetype=group)) + 
-  geom_tiplab(size=2) + 
-  geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + 
-  geom_treescale(offset = 1) + 
-  theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
-  xlim(-0.5,4) 
-
-# Collapse well supported Drosophila clades  
-tg <- collapse(tree_graphic,node=c(220)) %>% collapse(node=193)
-tg <- tg + geom_point2(aes(subset=(node %in% c(220,193))), size=5, shape=".") 
 
 #save the tree using a4 dimensions
-ggsave(tg, filename = "sp_tree4.png", width = 210, height = 297, units = "mm")
+ggsave(nodes_tree, filename = "sp_tree4_nodes.png", width = 210, height = 297, units = "mm")
+```
+
+```{r}
+SP_psg_matrix <- read_rds("../SP_psg_matrix.rds")
+
+SP_psg_matrix[SP_psg_matrix==0] <- NA
+
+heatmap_order <- match(meta_data3_reformatted[tip_label_order2], rownames(SP_psg_matrix)  %>% stringr::str_replace_all(c(":"="_","\\|"="_")) )
+
+SP_heatmap_data <- t(sapply(heatmap_order,function(i){ 
+  if(is.na(i)){
+    return(rep(NA,12))
+  } else {
+    return(SP_psg_matrix[i,])
+  }
+}))
+rownames(SP_heatmap_data) <- sp_tree4$tip.label
+colnames(SP_heatmap_data) <- colnames(SP_psg_matrix)
+
+#construct the tree colouring in by species, depicting bootstrap values (node support) with slight adjustments to the size and position to make the tree clearer, add a scale for the tree, add the legend and alter its position, italicise the legend and remove the legend title
+tree_plot <- ggtree(sp_tree4, aes(color=group, linetype=group)) + 
+  geom_tiplab(size=2) + 
+  geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=1.5) + 
+  geom_treescale(offset = -2) + 
+  theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
+  xlim(-0.5,3) 
+
+#combine tree plot and heatmap to form final tree
+ph <-  gheatmap(tree_plot,as.data.frame(SP_heatmap_data), offset = 0.2, width=0.7,font.size=3,colnames_angle=90, colnames_offset_y = 50) #+ scale_fill_manual(breaks=c("A","B"), values=c("red","blue"))
+
+ggsave(ph,filename = "tree_heatmap.png", width = 210, height = 297, units = "mm")
+
+```
+
+
+```{r}
+
+#collapsing nodes
+tree <- ggtree(sp_tree4, aes(color=group, linetype=group)) + 
+  geom_tiplab(size=2) + 
+  geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=1.5) + 
+  geom_treescale(offset = -2) + 
+  theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
+  xlim(-0.5,2) 
+
+tree_collapsed <- collapse(tree,node=c(257)) # %>% collapse(node=193)
+
+
+ggsave(tree_collapsed, filename = "collapsed_tree.png", width = 210, height = 297, units = "mm")
+
+
+tree_collapsed + geom_point2(aes(subset=(node %in% c(257))), size=5, shape=".")
+
+
+```
+
+
+```{r}
+
+#for SP_tree5
+
+#read in the meta data
+meta_data5 <- read_tsv("meta_data5.tsv", col_names = TRUE)
+names(meta_data5) <- c("Sequence", "Sequence_ID","Species")
+
+#read in the tree
+sp_tree5 <- read.tree("SP_tree5.fasta.contree")
+#sp_tree4 <- read.tree("SP_tree4.fasta.boottrees.contree.nwk")[[1]]
+
+
+ggtree(sp_tree5) + geom_tiplab()
+
+#replace the : with - and the | with _ in the sequence names in meta data to match it to the tree tip labels/sequence names (which were altered along the way - perhaps in iqtree)
+meta_data5_reformatted <- meta_data5$Sequence %>% stringr::str_replace_all(c(":"="_","\\|"="_")) 
+
+sp_tree5$tip.label <- sp_tree5$tip.label %>% str_replace_all("'","")
+
+#match the tip labels with the freshly formatted sequence names
+tip_label_order2 <- match(sp_tree5$tip.label,meta_data5_reformatted)
+
+# Check tip_label_order
+if ( ! identical(meta_data5_reformatted[tip_label_order2],sp_tree5$tip.label) ){
+  cat("Error tip label order not correct")
+  stop()
+} else {
+  #assign the tip labels to use the Sequence_ID column from the meta_data file
+  sp_tree4$tip.label <- meta_data5$Sequence_ID[tip_label_order2]
+}
+
+#midpoint root the tree
+sp_tree5 <- midpoint(sp_tree5)
+
+# Assign clades by parsing the tip labels and using split to create corresponding groups
+# This is safer and cleaner than hard coding names
+#
+clades <- sp_tree5$tip.label %>% 
+  str_extract("[^_]+") %>% 
+  str_replace_all(c("Ob"="Octopus bimaculoides",
+                             "Ov"="Octopus vulgaris",
+                             "Ok"="Octopus kaurna",
+                             "Hm"="Hapalochlaena maculosa",
+                             "So"="Sepia officinalis"))
+clade_groups <- split(sp_tree5$tip.label,clades)
+
+#assign the list to the tree
+sp_tree5 <- groupOTU(sp_tree5, clade_groups)
+
+#### heatmap
+
+SP_psg_matrix <- read_rds("../SP_psg_matrix.rds")
+
+SP_psg_matrix[SP_psg_matrix==0] <- NA
+
+heatmap_order <- match(meta_data5_reformatted[tip_label_order2], rownames(SP_psg_matrix)  %>% stringr::str_replace_all(c(":"="_","\\|"="_")) )
+
+SP_heatmap_data2 <- t(sapply(heatmap_order,function(i){ 
+  if(is.na(i)){
+    return(rep(NA,12))
+  } else {
+    return(SP_psg_matrix[i,])
+  }
+}))
+rownames(SP_heatmap_data2) <- sp_tree5$tip.label
+colnames(SP_heatmap_data2) <- colnames(SP_psg_matrix)
+
+#construct the tree colouring in by species, depicting bootstrap values (node support) with slight adjustments to the size and position to make the tree clearer, add a scale for the tree, add the legend and alter its position, italicise the legend and remove the legend title
+tree_plot <- ggtree(sp_tree5, aes(color=group, linetype=group)) + 
+  geom_tiplab(size=2) + 
+  geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=1.5) + 
+  geom_treescale(offset = -2) + 
+  theme(legend.position=c(0.1,0.8), legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
+  xlim(-0.5,2) 
+
+#combine tree plot and heatmap to form final tree
+ph <-gheatmap(tree_plot,as.data.frame(SP_heatmap_data2), offset = 0.2, width=0.7,font.size=3,colnames_angle=90, colnames_offset_y = 50)
+
+ggsave(ph,filename = "tree5_heatmap.png", width = 210, height = 297, units = "mm")
+
 ```

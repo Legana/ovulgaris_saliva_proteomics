@@ -10,12 +10,8 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 
 library(tidyverse)
-sequence_data <- readxl::read_xls("hpc/blastp_db_searches/",col_names = FALSE)
-names(sequence_data) <- c("ID","signalp","num_cysteines","seqlen","cysteine_percentage")
-
 
 novel_char <- read_delim("hpc/blastp_db_searches/npcc.txt",delim = "\t",col_names = FALSE)
-
 names(novel_char) <- c("ID","signalp","num_cysteines","seqlen","cysteine_percentage")
 
 #removing a column
@@ -35,7 +31,6 @@ novel_char$db <- c ("novel")
 
 novel_max_cys <- read_tsv("novel_max_cys.tsv", col_names = FALSE)
 names(novel_max_cys) <-c("ID", "max_cysteines", "knot")
-
 
 novel_char_2 <- left_join(novel_char, novel_max_cys, by=c("ID"))
 
@@ -71,7 +66,6 @@ sd(known_char_2$max_cysteines)
 
 filter(known_char_2, knot == "True")
 
-filter(known_char_2, max_cysteines >= 6) %>% filter(known_char_2, )
 ```
 
 ```{r}
@@ -110,6 +104,13 @@ sd(novel_char[,"cysteine_per_length"]) #0.03247534
 
 library(ggplot2)
 
+
+#density plot of known and novel characteristics showing cysteine percentage (number of cysteine/length)
+
+ggplot(data=known_novel_chars, aes(x=num_cysteines/seqlen)) + geom_density(aes(color=db)) + xlim(0,0.10)
+
+ggplot(data=known_novel_chars, aes(x=cysteine_per_length)) + geom_density(aes(color=db)) + xlim(0,0.7)
+
 #density plot of known and novel characteristics showing sequence length
 
 ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500)
@@ -132,16 +133,9 @@ ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xl
 
 ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + theme(panel.grid.minor=element_blank(), panel.grid.major = element_blank()) + theme(legend.position = c(.8, .8), legend.background = element_rect(colour = "black", size=0.3), legend.title = element_blank())
 
-# final plot (maybe)
+# final plot 
 
 ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db),size=1) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + xlim(0,200) + theme(legend.title = element_blank())
-
-#density plot of known and novel characteristics showing cysteine percentage (number of cysteine/length)
-
-ggplot(data=known_novel_chars, aes(x=num_cysteines/seqlen)) + geom_density(aes(color=db)) + xlim(0,0.10)
-
-ggplot(data=known_novel_chars, aes(x=cysteine_per_length)) + geom_density(aes(color=db)) + xlim(0,0.7)
-
 
 
 ```

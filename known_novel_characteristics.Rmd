@@ -10,6 +10,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 
 library(tidyverse)
+library(ggplot2)
 
 novel_char <- read_delim("hpc/blastp_db_searches/npcc.txt",delim = "\t",col_names = FALSE)
 names(novel_char) <- c("ID","signalp","num_cysteines","seqlen","cysteine_percentage")
@@ -135,8 +136,9 @@ ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db)) + xl
 
 # final plot 
 
-ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db),size=1) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + xlim(0,200) + theme(legend.title = element_blank())
+known_novel_plot <- ggplot(data=known_novel_chars, aes(x=seqlen)) + geom_density(aes(color=db),size=1) + xlim(0,500) + xlab("Sequence length (aa)") + ylab("Density") + xlim(0,200) + theme(legend.title = element_blank())
 
+ggsave(known_novel_plot, filename = "known_novel_plot.png", width = 150, height = 90, units = "mm")
 
 ```
 

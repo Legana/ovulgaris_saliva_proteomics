@@ -10,6 +10,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 
 library(tidyverse)
+library(ape)
+library(ggplot2)
+library(ggtree)
+library(stringr)
+
 
 #read in the meta data
 meta_data5 <- read_tsv("meta_data5.tsv", col_names = TRUE)
@@ -86,13 +91,22 @@ tree_plot <-   ggtree(sp_tree5, aes(color=group, linetype=group)) +
   geom_treescale(offset = -2) + 
   theme(legend.position=c(0.1,0.1), legend.text = element_text(face = "italic"), legend.title = element_blank()) +   
 #  theme(legend.position="left", legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
-  xlim(0,3.25) 
+  xlim(0,3.25) +
+  theme(panel.border = element_blank(),
+        legend.key = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank(),
+       plot.background = element_rect(fill = "transparent",colour = NA))
 
 
 
 #combine tree plot and heatmap to form final tree
 ph <-  gheatmap(tree_plot,as.data.frame(SP_heatmap_data2), offset = 0, width=0.45,font.size=2,colnames_angle=90, colnames_offset_y = -3) + theme(legend.position = "bottom", legend.text = element_text(size=8))
 
-ggsave(ph,filename = "tree5_heatmap.png", width = 210, height = 297, units = "mm")
+#ggsave(ph,filename = "tree5_heatmap.png", width = 210, height = 297, units = "mm")
+
+ggsave(ph,filename = "tree5clear_heatmap.png", bg = "transparent", width = 210, height = 297, units = "mm")
 ```
 

@@ -179,7 +179,7 @@ TD <- chars_blast_lfq %>% filter(ID %in% toxin_domains_annot$ID)
 
 td_domains_combined <- left_join(TD, toxin_domains_annot, by = "ID")
 
-td_table <- td_domains_combined[c(1:6,22,44:49,51:56)]
+td_table <- td_domains_combined[c(1:6,8:9,22,44:49,51:56)]
 
 write_delim(td_table, "td_table.tsv", delim = "\t")
   

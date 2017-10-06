@@ -1,0 +1,85 @@
+---
+title: "heatmap_SSCR"
+output: html_document
+---
+
+```{r}
+#read in data
+full_maxquant_table <- read_tsv("maxquant_fresh_protein_table.tsv", col_names = TRUE)
+
+SSCR_ids <- read_tsv("short_secreted_IDS.tsv", col_names = TRUE)
+names(SSCR_ids) <- c("ID")
+
+#extract TD from full maxquant table
+SSCR <- full_maxquant_table %>% filter(ID %in% SSCR_ids$ID)
+
+#extract PSG and saliva columns for adults and juveniles
+SSCR_psg_sal <- SSCR[c(1,23:28,32:34,38:43)]
+
+#transform data to a matrix excluding the first column (rownames) and add row names
+SSCR_psg_sal_matrix <-log2(data.matrix(SSCR_psg_sal[-c(1)]))
+rownames(SSCR_psg_sal_matrix) <- SSCR_psg_sal$ID
+
+#calculate relative abundance 
+SSCR_psg_sal_matrix_rowmeans <- rowMeans(SSCR_psg_sal_matrix,na.rm = TRUE)
+SSCR_psg_sal_matrix_relative <- t(sapply(1:nrow(SSCR_psg_sal_matrix),function(i){ SSCR_psg_sal_matrix[i,]-SSCR_psg_sal_matrix_rowmeans[i] }))
+
+#
+SSCR_psg_sal_matrix_for_clust <- SSCR_psg_sal_matrix_relative
+venom_values <- SSCR_psg_sal_matrix_for_clust[,c(13,14,15)]
+#change venom values to 1 (present)
+venom_values[!is.na(venom_values)] <- 1
+#assign new venom values to calculated relative abundance matrix
+SSCR_psg_sal_matrix_relative[,c(13:15)] <- venom_values
+#change n/a values to 0 (absent)
+SSCR_psg_sal_matrix_for_clust[is.na(SSCR_psg_sal_matrix_relative)] <- 0
+
+#cluster by order of rows and columns
+SSCR_psg_sal_row_order <- hclust(dist(SSCR_psg_sal_matrix_for_clust))$order
+SSCR_psg_sal_col_order <- hclust(dist(t(SSCR_psg_sal_matrix_for_clust)))$order
+
+#shorten the long IDs 
+clean_ids <- str_replace(rownames(SSCR_psg_sal_matrix),"[^\\:]+\\:\\:","") %>% str_replace("lcl\\|","") %>% str_replace("TRINITY_","") %>% str_replace("\\:.*$","") %>% str_replace("tr\\|[^\\|]+\\|","")
+
+#assign new IDs to new matrix
+SSCR_psg_sal_matrix_clean_ids <- SSCR_psg_sal_matrix_relative
+rownames(SSCR_psg_sal_matrix_clean_ids) <- clean_ids
+
+#add colours
+library(RColorBrewer)
+spc <- brewer.pal(11,"Spectral")
+
+#create heatmaps
+
+SSCR_psg_sal_matrix_clean_ids_hm <- Heatmap(SSCR_psg_sal_matrix_clean_ids[,-c(13:15)], 
+                                      row_names_gp = gpar(fontsize = 10),
+                                      column_names_gp = gpar(fontsize = 10), 
+                                      row_names_max_width = unit(10, "cm"), 
+                                      column_names_max_height = unit(10, "cm"), 
+                                      heatmap_legend_param = list(title = "log2 Relative Expression", color_bar = "continuous"), 
+                                      col = spc,
+                                      cluster_rows = FALSE,
+                                      cluster_columns = FALSE,
+                                      row_order = SSCR_psg_sal_row_order,
+                                      column_order = SSCR_psg_sal_col_order[-c(11,13,15)])
+
+
+
+venom_values[is.na(venom_values)] <- 0
+SSCR_psg_sal_matrix_clean_ids_venom_hm <- Heatmap(venom_values, 
+                                      row_names_gp = gpar(fontsize = 10),
+                                      column_names_gp = gpar(fontsize = 10), 
+                                      row_names_max_width = unit(10, "cm"), 
+                                      column_names_max_height = unit(10, "cm"), 
+                                      heatmap_legend_param = list(title=NULL,at=c(0,1), labels = c("Absent", "Present")),
+                                      cluster_rows = FALSE,
+                                      cluster_columns = FALSE,
+                                      row_order = SSCR_psg_sal_row_order,
+                                      show_row_names = FALSE)
+
+pdf("hm_SSCR_psg_sal_num.pdf",width = 9, height = 5)
+draw(SSCR_psg_sal_matrix_clean_ids_venom_hm  + SSCR_psg_sal_matrix_clean_ids_hm , heatmap_legend_side = "left", gap = unit(0.2, "cm"))
+dev.off()
+```
+
+

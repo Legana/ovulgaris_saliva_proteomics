@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(ComplexHeatmap)
+library(grid)
+library(stringr)
+```
+
+
+```{r}
+
+# heatmap for TD proteins with numerical values
+
+
+#read in data
+full_maxquant_table <- read_tsv("maxquant_fresh_protein_table.tsv", col_names = TRUE)
+
+TD_ids <- read_tsv("toxin_domains.tsv", col_names = TRUE)
+names(TD_ids) <- c("ID", "Family")
+
+#extract TD from full maxquant table
+TD <- full_maxquant_table %>% filter(ID %in% TD_ids$ID) %>% group_by(group) %>% summarise_all(first)
+
+#extract PSG columns for adults and juveniles
+TD_psg <- TD[c(2,23:28,32:34,38:43)]
+
+TD_psg_matrix <-log2(data.matrix(TD_psg[-c(1)]))
+rownames(TD_psg_matrix) <- TD_psg$ID
+
+TD_psg_matrix_rowmeans <- rowMeans(TD_psg_matrix,na.rm = TRUE)
+TD_psg_matrix_relative <- t(sapply(1:nrow(TD_psg_matrix),function(i){ TD_psg_matrix[i,]-TD_psg_matrix_rowmeans[i] }))
+
+#change NA values to 0
+TD_psg_matrix_for_clust <- TD_psg_matrix_relative
+venom_values <- TD_psg_matrix_for_clust[,c(13,14,15)]
+venom_values[!is.na(venom_values)] <- 1
+TD_psg_matrix_relative[,c(13:15)] <- venom_values
+TD_psg_matrix_for_clust[is.na(TD_psg_matrix_relative)] <- 0
+
+
+
+TD_psg_row_order <- hclust(dist(TD_psg_matrix_for_clust))$order
+TD_psg_col_order <- hclust(dist(t(TD_psg_matrix_for_clust)))$order
+
+#shorten the long IDs 
+clean_ids <- str_replace(rownames(TD_psg_matrix),"[^\\:]+\\:\\:","") %>% str_replace("lcl\\|","") %>% str_replace("TRINITY_","") %>% str_replace("\\:.*$","") %>% str_replace("tr\\|[^\\|]+\\|","")
+
+TD_psg_matrix_clean_ids <- TD_psg_matrix_relative
+rownames(TD_psg_matrix_clean_ids) <- clean_ids
+
+library(RColorBrewer)
+spc <- brewer.pal(11,"Spectral")
+
+#annotations
+
+family_df <- data.frame(Family = TD_ids$Family[match(rownames(TD_psg_matrix),TD_ids$ID)])
+
+TD_hm_annotations <- HeatmapAnnotation(df = family_df, which = 'row',col=list(Family=c("CAP" = "firebrick", "Carboxylesterase" = "darkseagreen", "Chitinase" = "darkorange2", "Phospholipase" = "deeppink3", "Metalloprotease" = "gray0", "DNase" = "dodgerblue3", "Hyaluronidase" = "darkviolet")))
+                                       
+TD_psg_matrix_clean_ids
+
+#create heatmap
+
+TD_psg_matrix_clean_ids_hm <- Heatmap(TD_psg_matrix_clean_ids[,-c(13:15)], 
+                                      row_names_gp = gpar(fontsize = 10),
+                                      column_names_gp = gpar(fontsize = 10), 
+                                      row_names_max_width = unit(10, "cm"), 
+                                      column_names_max_height = unit(10, "cm"), 
+                                      heatmap_legend_param = list(title = "log2 Relative Expression", color_bar = "continuous"), 
+                                      col = spc,
+                                      cluster_rows = FALSE,
+                                      cluster_columns = FALSE,
+                                      row_order = TD_psg_row_order,
+                                      column_order = TD_psg_col_order[-c(1,2,15)])
+
+
+venom_values[is.na(venom_values)] <- 0
+TD_psg_matrix_clean_ids_venom_hm <- Heatmap(venom_values, 
+                                      row_names_gp = gpar(fontsize = 10),
+                                      column_names_gp = gpar(fontsize = 10), 
+                                      row_names_max_width = unit(10, "cm"), 
+                                      column_names_max_height = unit(10, "cm"), 
+                                      heatmap_legend_param = list(title=NULL,at=c(0,1), labels = c("Absent", "Present")),
+                                      cluster_rows = FALSE,
+                                      cluster_columns = FALSE,
+                                      row_order = TD_psg_row_order,
+                                      show_row_names = FALSE)
+
+#pdf("hm_TD_psg_sal_num.pdf",width = 9, height = 5)
+draw(TD_hm_annotations + TD_psg_matrix_clean_ids_venom_hm  + TD_psg_matrix_clean_ids_hm , heatmap_legend_side = "left", gap = unit(0.2, "cm"))
+#dev.off()
+
+```
+
+

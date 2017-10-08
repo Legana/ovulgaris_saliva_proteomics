@@ -3,10 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
 ```{r}
 
 library(tidyverse)
@@ -14,17 +10,18 @@ library(ape)
 library(ggplot2)
 library(ggtree)
 library(stringr)
+```
 
-
+```{r}
 #read in the meta data
 meta_data5 <- read_tsv("meta_data5.tsv", col_names = TRUE)
 names(meta_data5) <- c("Sequence", "Sequence_ID","Species")
 
 #read in the tree
-#sp_tree5 <- read.tree("SP_tree5.fasta.contree")
 sp_tree5 <- read.tree("SP_tree5.fasta.nwk")
 sp_tree5$node.label <- as.numeric(sp_tree5$node.label)
 
+#quick look at the tree
 ggtree(sp_tree5) + geom_tiplab()
 
 #replace the : with - and the | with _ in the sequence names in meta data to match it to the tree tip labels/sequence names (which were altered along the way - perhaps in iqtree)
@@ -43,9 +40,6 @@ if ( ! identical(meta_data5_reformatted[tip_label_order2],sp_tree5$tip.label) ){
   #assign the tip labels to use the Sequence_ID column from the meta_data file
   sp_tree5$tip.label <- meta_data5$Sequence_ID[tip_label_order2]
 }
-
-#midpoint root the tree
-#sp_tree5 <- midpoint(sp_tree5)
 
 # Assign clades by parsing the tip labels and using split to create corresponding groups
 # This is safer and cleaner than hard coding names
@@ -67,15 +61,17 @@ sp_tree5 <- groupOTU(sp_tree5, clade_groups)
 
 #### heatmap
 
-SP_psg_matrix <- read_rds("../SP_psg_matrix.rds")
-SP_psg_matrix <- SP_psg_matrix[,-c(13:15)]
+SP_psg_matrix <- read_rds("SP_psg_matrix.rds")
 SP_psg_matrix[SP_psg_matrix==0] <- NA
+
+# This is an easy way to subtract rowmeans
+SP_psg_matrix <- SP_psg_matrix %>% t %>% scale(scale = FALSE) %>% t
 
 heatmap_order <- match(meta_data5_reformatted[tip_label_order2], rownames(SP_psg_matrix)  %>% stringr::str_replace_all(c(":"="_","\\|"="_")) )
 
 SP_heatmap_data2 <- t(sapply(heatmap_order,function(i){ 
   if(is.na(i)){
-    return(rep(NA,12))
+    return(rep(NA,15))
   } else {
     return(SP_psg_matrix[i,])
   }
@@ -90,7 +86,6 @@ tree_plot <-   ggtree(sp_tree5, aes(color=group, linetype=group)) +
   geom_text2(aes(subset = !isTip, label=label), hjust=-.1, size=2) + 
   geom_treescale(offset = -2) + 
   theme(legend.position=c(0.1,0.1), legend.text = element_text(face = "italic"), legend.title = element_blank()) +   
-#  theme(legend.position="left", legend.text = element_text(face = "italic"), legend.title = element_blank()) + 
   xlim(0,3.25) +
   theme(panel.border = element_blank(),
         legend.key = element_blank(),
@@ -104,6 +99,7 @@ tree_plot <-   ggtree(sp_tree5, aes(color=group, linetype=group)) +
 
 #combine tree plot and heatmap to form final tree
 ph <-  gheatmap(tree_plot,as.data.frame(SP_heatmap_data2), offset = 0, width=0.45,font.size=2,colnames_angle=90, colnames_offset_y = -3) + theme(legend.position = "bottom", legend.text = element_text(size=8))
+
 
 #ggsave(ph,filename = "tree5_heatmap.png", width = 210, height = 297, units = "mm")
 

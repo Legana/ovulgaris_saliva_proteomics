@@ -62,7 +62,6 @@ family_df <- data.frame(Family = TD_ids$Family[match(rownames(TD_psg_matrix),TD_
 
 TD_hm_annotations <- HeatmapAnnotation(df = family_df, which = 'row',col=list(Family=c("CAP" = "firebrick", "Carboxylesterase" = "darkseagreen", "Chitinase" = "darkorange2", "Phospholipase" = "deeppink3", "Metalloprotease" = "gray0", "DNase" = "dodgerblue3", "Hyaluronidase" = "darkviolet")))
                                        
-TD_psg_matrix_clean_ids
 
 #create heatmap
 
@@ -91,9 +90,9 @@ TD_psg_matrix_clean_ids_venom_hm <- Heatmap(venom_values,
                                       row_order = TD_psg_row_order,
                                       show_row_names = FALSE)
 
-#pdf("hm_TD_psg_sal_num.pdf",width = 9, height = 5)
+pdf("hm_TD_psg_sal.pdf",width = 9, height = 5)
 draw(TD_hm_annotations + TD_psg_matrix_clean_ids_venom_hm  + TD_psg_matrix_clean_ids_hm , heatmap_legend_side = "left", gap = unit(0.2, "cm"))
-#dev.off()
+dev.off()
 
 ```
 

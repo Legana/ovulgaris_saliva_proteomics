@@ -38,14 +38,10 @@ TD_psg_matrix_relative <- t(sapply(1:nrow(TD_psg_matrix),function(i){ TD_psg_mat
 #change NA values to 0
 TD_psg_matrix_for_clust <- TD_psg_matrix_relative
 venom_values <- TD_psg_matrix_for_clust[,c(13,14,15)]
-venom_values[!is.na(venom_values)] <- 1
+
+
 TD_psg_matrix_relative[,c(13:15)] <- venom_values
 TD_psg_matrix_for_clust[is.na(TD_psg_matrix_relative)] <- 0
-
-
-
-TD_psg_row_order <- hclust(dist(TD_psg_matrix_for_clust))$order
-TD_psg_col_order <- hclust(dist(t(TD_psg_matrix_for_clust)))$order
 
 #shorten the long IDs 
 clean_ids <- str_replace(rownames(TD_psg_matrix),"[^\\:]+\\:\\:","") %>% str_replace("lcl\\|","") %>% str_replace("TRINITY_","") %>% str_replace("\\:.*$","") %>% str_replace("tr\\|[^\\|]+\\|","")
@@ -70,28 +66,29 @@ TD_psg_matrix_clean_ids_hm <- Heatmap(TD_psg_matrix_clean_ids[,-c(13:15)],
                                       column_names_gp = gpar(fontsize = 10), 
                                       row_names_max_width = unit(10, "cm"), 
                                       column_names_max_height = unit(10, "cm"), 
-                                      heatmap_legend_param = list(title = "log2 Relative Expression", color_bar = "continuous"), 
+                                      heatmap_legend_param = list(title = "log2 Relative Expression",at=c(-4,-2,0,2,4), color_bar = "continuous"), 
                                       col = spc,
                                       cluster_rows = FALSE,
                                       cluster_columns = FALSE,
-                                      row_order = TD_psg_row_order,
-                                      column_order = TD_psg_col_order[-c(1,2,15)])
+                                      # row_order = TD_psg_row_order,
+                                      row_order = order(family_df[,1]),
+                                                                            show_row_names = TRUE)
 
-
-venom_values[is.na(venom_values)] <- 0
 TD_psg_matrix_clean_ids_venom_hm <- Heatmap(venom_values, 
                                       row_names_gp = gpar(fontsize = 10),
                                       column_names_gp = gpar(fontsize = 10), 
                                       row_names_max_width = unit(10, "cm"), 
                                       column_names_max_height = unit(10, "cm"), 
-                                      heatmap_legend_param = list(title=NULL,at=c(0,1), labels = c("Absent", "Present")),
+                                      col=spc,
+                                      heatmap_legend_param = list(title = "log2 Relative Expression",at=c(-4,-2,0,2,4), color_bar = "continuous"), 
                                       cluster_rows = FALSE,
                                       cluster_columns = FALSE,
-                                      row_order = TD_psg_row_order,
+                                      row_order = order(family_df[,1]),
+                                      show_heatmap_legend = FALSE,
                                       show_row_names = FALSE)
 
 pdf("hm_TD_psg_sal.pdf",width = 9, height = 5)
-draw(TD_hm_annotations + TD_psg_matrix_clean_ids_venom_hm  + TD_psg_matrix_clean_ids_hm , heatmap_legend_side = "left", gap = unit(0.2, "cm"))
+draw(TD_hm_annotations + TD_psg_matrix_clean_ids_venom_hm + TD_psg_matrix_clean_ids_hm , heatmap_legend_side = "left", gap = unit(0.2, "cm"))
 dev.off()
 
 ```

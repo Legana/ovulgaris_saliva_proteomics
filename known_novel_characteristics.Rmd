@@ -24,6 +24,8 @@ novel_char <- subset( novel_char, select = -cysteine_percentage)
 novel_char$cysteine_per_length <- (novel_char$num_cysteines / novel_char$seqlen)
 
 novel_char$db <- c ("novel")
+
+signalsonly <- filter(novel_char, signalp == "Y") 
 ```
 
 ```{r}

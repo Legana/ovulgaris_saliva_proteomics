@@ -41,6 +41,9 @@ The `proteogenomics` folder within `hpc` contains just small files and a README.
 
 - [aa_composition.py](https://github.com/Legana/ovulgaris_saliva_proteomics/blob/master/aim2/max_new/aa_composition.py)
 
+# Dot product frequency distributions to test for outliers
+- [dot_product.Rmd](https://github.com/Legana/ovulgaris_saliva_proteomics/blob/master/aim2/max_new/dot_product.Rmd)
+
 # Toxin domain heatmap
 
 - [heatmap_TD.Rmd](https://github.com/Legana/ovulgaris_saliva_proteomics/blob/master/aim2/max_new/heatmap_TD.Rmd)
@@ -51,7 +54,7 @@ The `proteogenomics` folder within `hpc` contains just small files and a README.
 
 # Cephalopod serine protease tree
 
-- [sp_tree5.Rmd] https://github.com/Legana/ovulgaris_saliva_proteomics/blob/master/aim2/max_new/phylogenetics/sp_tree5.Rmd
+- [sp_tree5.Rmd]https://github.com/Legana/ovulgaris_saliva_proteomics/blob/master/aim2/max_new/phylogenetics/sp_tree5.Rmd
 
 # Serine protease tree including additional taxa and sequences
 

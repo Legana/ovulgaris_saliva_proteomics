@@ -1,0 +1,31 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+
+#import files
+cz1 <- read_tsv("dot_product_cz1.tsv", col_names = FALSE)
+names(cz1) <- c("ID", "dot_product")
+
+cz2 <- read_tsv("dot_product_cz2.tsv", col_names = FALSE)
+names(cz2) <- c("ID", "dot_product")
+
+#create histograms
+cz1_hist <- ggplot(data = cz1, aes(cz1$dot_product)) + geom_histogram() + xlab("Dot product of alpha-cephalotoxin") + ylab("Number of proteins")
+
+cz2_hist <- ggplot(data = cz2, aes(cz2$dot_product)) + geom_histogram() + xlab("Dot product of beta-cephalotoxin") + ylab("Number of proteins")
+
+#combine histograms side by side on one page
+cz1cz2 <- ggarrange(cz1_hist, cz2_hist, labels = c("A", "B"))
+
+#save plot
+ggsave(cz1cz2, filename = "dot_product.png", width = 150, height = 90, units = "mm")
+
+
+```
+
+
